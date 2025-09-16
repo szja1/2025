@@ -449,46 +449,55 @@
                 $('#loadAll').on('click', () => this.loadAllYears());
             }
 
-            async loadYear(year, showPreloader = true) {
-                if (this.loadPromises[year]) {
-                    return this.loadPromises[year];
-                }
+async loadYear(year, showPreloader = true) {
+    if (this.loadPromises[year]) {
+        return this.loadPromises[year];
+    }
 
-                if (showPreloader) {
-                    this.showPreloader(`${year} adatok betöltése...`);
-                }
+    if (showPreloader) {
+        this.showPreloader(`${year} adatok betöltése...`);
+    }
 
-                this.updateStatus(year, 'loading');
-                $(`#load${year}`).prop('disabled', true);
+    this.updateStatus(year, 'loading');
+    $(`#load${year}`).prop('disabled', true);
 
-                this.loadPromises[year] = this.fetchYearData(year);
-
-                try {
-                    const data = await this.loadPromises[year];
-                    this.datasets[year] = data;
-                    this.loadedYears.add(year);
-                    
-                    this.updateStatus(year, 'loaded');
-                    this.processYearData(year);
-                    this.updateCombinedData();
-                    this.updateUI();
-                    
-                    if (showPreloader) {
-                        setTimeout(() => this.hidePreloader(), 200);
-                    }
-                    
-                } catch (error) {
-                    console.error(`Hiba ${year} betöltésekor:`, error);
-                    this.updateStatus(year, 'error');
-                    if (showPreloader) {
-                        this.hidePreloader();
-                    }
-                    this.showAlert(`Hiba: ${year} adatok betöltése sikertelen!`);
-                } finally {
-                    $(`#load${year}`).prop('disabled', false);
-                    delete this.loadPromises[year];
-                }
-            }
+    try {
+        // Használjuk az egyszerűbb fetch metódust
+        const response = await fetch(`${year}.json`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        // Progress szimuláció
+        this.updateProgress(30);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const data = await response.json();
+        
+        this.updateProgress(100);
+        
+        this.datasets[year] = data;
+        this.loadedYears.add(year);
+        
+        this.updateStatus(year, 'loaded');
+        this.processYearData(year);
+        this.updateCombinedData();
+        this.updateUI();
+        
+        if (showPreloader) {
+            setTimeout(() => this.hidePreloader(), 300);
+        }
+        
+    } catch (error) {
+        console.error(`Hiba ${year} betöltésekor:`, error);
+        this.updateStatus(year, 'error');
+        if (showPreloader) {
+            this.hidePreloader();
+        }
+        this.showAlert(`Hiba: ${year} adatok betöltése sikertelen!`);
+    } finally {
+        $(`#load${year}`).prop('disabled', false);
+        delete this.loadPromises[year];
+    }
+}
 
 async fetchYearData(year) {
     try {
