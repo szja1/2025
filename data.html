@@ -652,29 +652,7 @@ function calculateYearStats(adatok) {
 }
 
 
-                // Összesítések számítása
-                Object.values(companies).forEach(company => {
-                    const companyTotal = company[2023].osszeg + company[2024].osszeg + company[2025].osszeg;
-                    const companyDonors = company[2023].fo + company[2024].fo + company[2025].fo;
-                    
-                    company.osszesOsszeg = companyTotal;
-                    company.osszesFo = companyDonors;
-                    company.atlagPerFo = companyDonors > 0 ? Math.round(companyTotal / companyDonors) : 0;
-                    
-                    totalAmount += companyTotal;
-                    totalDonors += companyDonors;
-                });
-
-                totalCompanies = Object.keys(companies).length;
-
-                return {
-                    companies: Object.values(companies),
-                    totalCompanies,
-                    totalAmount,
-                    totalDonors,
-                    avgAmount: totalDonors > 0 ? Math.round(totalAmount / totalDonors) : 0
-                };
-            }
+               
 
             // Összesített statisztikák megjelenítése
             function displayCombinedStats(data) {
