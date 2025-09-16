@@ -133,14 +133,29 @@
             box-shadow: var(--shadow);
         }
 
-        .table-container {
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-            margin-top: 0.75rem;
-        }
+.table-container {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-top: 0.75rem;
+}
+/* Új szabály a scrollX-hez */
+.dataTables_scrollHead {
+    overflow: hidden !important;
+}
 
+        .dataTables_scrollHeadInner {
+    width: 100% !important;
+}
+
+.dataTables_scrollHeadInner table {
+    margin: 0 !important;
+}
+
+.dataTables_scrollBody {
+    overflow-x: auto;
+}
         .table th {
             background: var(--light-color);
             border: none;
@@ -774,36 +789,40 @@ async fetchYearData(year) {
                 }
 
                 this.dataTables.combined = $('#combinedTable').DataTable({
-                    data: rows,
-                    pageLength: 25,
-                    responsive: true,
-                    scrollX: true,
-                    dom: 'Bfrtip',
-                    buttons: [
-                        {
-                            extend: 'csv',
-                            text: 'CSV'
-                        },
-                        {
-                            extend: 'excel',
-                            text: 'Excel'
-                        },
-                        {
-                            extend: 'copy',
-                            text: 'JSON',
-                            action: function(e, dt, button, config) {
-                                const data = dt.data().toArray();
-                                navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-                                alert('JSON adatok vágólapra másolva!');
-                            }
-                        }
-                    ],
-                    language: {
-                        url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/hu.json"
-                    },
-                    order: [[7, 'desc']] // Sort by total amount descending
-                });
+    data: rows,
+    pageLength: 25,
+    responsive: false, // Kikapcsoljuk a responsive módot
+    scrollX: true,
+    scrollCollapse: true, // Hozzáadjuk a scroll collapse-t
+    fixedHeader: true, // Fix fejléc hozzáadása
+    dom: 'Bfrtip',
+    buttons: [
+        {
+            extend: 'csv',
+            text: 'CSV'
+        },
+        {
+            extend: 'excel',
+            text: 'Excel'
+        },
+        {
+            extend: 'copy',
+            text: 'JSON',
+            action: function(e, dt, button, config) {
+                const data = dt.data().toArray();
+                navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+                alert('JSON adatok vágólapra másolva!');
             }
+        }
+    ],
+    language: {
+        url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/hu.json"
+    },
+    order: [[7, 'desc']], // Sort by total amount descending
+    columnDefs: [
+        { targets: '_all', className: 'text-nowrap' } // Minden oszlopnál nowrap
+    ]
+});
 
             updateUI() {
                 if (this.loadedYears.size === this.years.length) {
