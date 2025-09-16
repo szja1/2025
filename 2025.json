@@ -1,0 +1,127 @@
+{
+  "exportDatum": "2025-09-16 15:45:30",
+  "forrás": "2025 munkalap",
+  "rekordokSzáma": 10,
+  "adatok": [
+    {
+      "sorszam": "1",
+      "adoszam": {
+        "resz1": "12345678",
+        "resz2": "2",
+        "resz3": "01"
+      },
+      "nev": "ABC Kereskedelmi Kft.",
+      "szekhely": "1234 Budapest, Fő utca 12.",
+      "felajanlottOsszeg": 180000,
+      "felajanlokSzama": 6
+    },
+    {
+      "sorszam": "2",
+      "adoszam": {
+        "resz1": "98765432",
+        "resz2": "1",
+        "resz3": "09"
+      },
+      "nev": "XYZ Ipari Zrt.",
+      "szekhely": "4567 Debrecen, Nagy Lajos király útja 34.",
+      "felajanlottOsszeg": 950000,
+      "felajanlokSzama": 28
+    },
+    {
+      "sorszam": "3",
+      "adoszam": {
+        "resz1": "11223344",
+        "resz2": "5",
+        "resz3": "56"
+      },
+      "nev": "DEF Szolgáltató Bt.",
+      "szekhely": "7890 Szeged, Dugonics tér 1.",
+      "felajanlottOsszeg": 380000,
+      "felajanlokSzama": 10
+    },
+    {
+      "sorszam": "4",
+      "adoszam": {
+        "resz1": "55667788",
+        "resz2": "3",
+        "resz3": "42"
+      },
+      "nev": "GHI Építőipari Kft.",
+      "szekhely": "1111 Budapest, Váci út 150.",
+      "felajanlottOsszeg": 1450000,
+      "felajanlokSzama": 52
+    },
+    {
+      "sorszam": "5",
+      "adoszam": {
+        "resz1": "99887766",
+        "resz2": "4",
+        "resz3": "15"
+      },
+      "nev": "JKL Pénzügyi Tanácsadó Zrt.",
+      "szekhely": "2000 Szentendre, Fő tér 8.",
+      "felajanlottOsszeg": 85000,
+      "felajanlokSzama": 4
+    },
+    {
+      "sorszam": "6",
+      "adoszam": {
+        "resz1": "44556677",
+        "resz2": "8",
+        "resz3": "23"
+      },
+      "nev": "MNO Informatikai Kft.",
+      "szekhely": "3300 Eger, Dobó István tér 5.",
+      "felajanlottOsszeg": 620000,
+      "felajanlokSzama": 18
+    },
+    {
+      "sorszam": "7",
+      "adoszam": {
+        "resz1": "33445566",
+        "resz2": "7",
+        "resz3": "89"
+      },
+      "nev": "PQR Logisztikai Zrt.",
+      "szekhely": "6000 Kecskemét, Szabadság tér 12.",
+      "felajanlottOsszeg": 240000,
+      "felajanlokSzama": 8
+    },
+    {
+      "sorszam": "8",
+      "adoszam": {
+        "resz1": "77889900",
+        "resz2": "6",
+        "resz3": "34"
+      },
+      "nev": "STU Energia Kft.",
+      "szekhely": "9000 Győr, Arany János utca 45.",
+      "felajanlottOsszeg": 480000,
+      "felajanlokSzama": 16
+    },
+    {
+      "sorszam": "9",
+      "adoszam": {
+        "resz1": "12348765",
+        "resz2": "9",
+        "resz3": "67"
+      },
+      "nev": "VWX Biotechnológiai Kft.",
+      "szekhely": "1051 Budapest, József Attila utca 22.",
+      "felajanlottOsszeg": 750000,
+      "felajanlokSzama": 25
+    },
+    {
+      "sorszam": "10",
+      "adoszam": {
+        "resz1": "56789012",
+        "resz2": "3",
+        "resz3": "45"
+      },
+      "nev": "YZ Oktatási Központ Nonprofit Kft.",
+      "szekhely": "1082 Budapest, Üllői út 133.",
+      "felajanlottOsszeg": 220000,
+      "felajanlokSzama": 7
+    }
+  ]
+}
