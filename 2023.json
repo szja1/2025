@@ -1,7 +1,7 @@
 {
-  "exportDatum": "2025-01-15 14:30:25",
-  "forrás": "2025 munkalap",
-  "rekordokSzáma": 5,
+  "exportDatum": "2023-12-31 18:30:15",
+  "forrás": "2023 munkalap",
+  "rekordokSzáma": 6,
   "adatok": [
     {
       "sorszam": "1",
@@ -12,8 +12,8 @@
       },
       "nev": "ABC Kereskedelmi Kft.",
       "szekhely": "1234 Budapest, Fő utca 12.",
-      "felajanlottOsszeg": 150000,
-      "felajanlokSzama": 5
+      "felajanlottOsszeg": 85000,
+      "felajanlokSzama": 3
     },
     {
       "sorszam": "2",
@@ -24,23 +24,11 @@
       },
       "nev": "XYZ Ipari Zrt.",
       "szekhely": "4567 Debrecen, Nagy Lajos király útja 34.",
-      "felajanlottOsszeg": 850000,
-      "felajanlokSzama": 25
+      "felajanlottOsszeg": 520000,
+      "felajanlokSzama": 15
     },
     {
       "sorszam": "3",
-      "adoszam": {
-        "resz1": "11223344",
-        "resz2": "5",
-        "resz3": "56"
-      },
-      "nev": "DEF Szolgáltató Bt.",
-      "szekhely": "7890 Szeged, Dugonics tér 1.",
-      "felajanlottOsszeg": 320000,
-      "felajanlokSzama": 8
-    },
-    {
-      "sorszam": "4",
       "adoszam": {
         "resz1": "55667788",
         "resz2": "3",
@@ -48,20 +36,44 @@
       },
       "nev": "GHI Építőipari Kft.",
       "szekhely": "1111 Budapest, Váci út 150.",
-      "felajanlottOsszeg": 1250000,
-      "felajanlokSzama": 45
+      "felajanlottOsszeg": 680000,
+      "felajanlokSzama": 25
+    },
+    {
+      "sorszam": "4",
+      "adoszam": {
+        "resz1": "44556677",
+        "resz2": "8",
+        "resz3": "23"
+      },
+      "nev": "MNO Informatikai Kft.",
+      "szekhely": "3300 Eger, Dobó István tér 5.",
+      "felajanlottOsszeg": 210000,
+      "felajanlokSzama": 8
     },
     {
       "sorszam": "5",
       "adoszam": {
-        "resz1": "99887766",
-        "resz2": "4",
-        "resz3": "15"
+        "resz1": "77889900",
+        "resz2": "6",
+        "resz3": "34"
       },
-      "nev": "JKL Pénzügyi Tanácsadó Zrt.",
-      "szekhely": "2000 Szentendre, Fő tér 8.",
-      "felajanlottOsszeg": 75000,
-      "felajanlokSzama": 3
+      "nev": "STU Energia Kft.",
+      "szekhely": "9000 Győr, Arany János utca 45.",
+      "felajanlottOsszeg": 150000,
+      "felajanlokSzama": 5
+    },
+    {
+      "sorszam": "6",
+      "adoszam": {
+        "resz1": "22334455",
+        "resz2": "1",
+        "resz3": "78"
+      },
+      "nev": "RST Vendéglátó Kft.",
+      "szekhely": "7621 Pécs, Széchenyi tér 3.",
+      "felajanlottOsszeg": 95000,
+      "felajanlokSzama": 4
     }
   ]
 }
