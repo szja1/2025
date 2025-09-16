@@ -490,37 +490,37 @@
                 }
             }
 
-            async fetchYearData(year) {
-                const response = await fetch(`${year}.json`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
-                const total = parseInt(response.headers.get('content-length')) || 0;
-                let loaded = 0;
-                
-                const reader = response.body.getReader();
-                const stream = new ReadableStream({
-                    start(controller) {
-                        function pump() {
-                            return reader.read().then(({ done, value }) => {
-                                if (done) {
-                                    controller.close();
-                                    return;
-                                }
-                                loaded += value.byteLength;
-                                const progress = total ? Math.round((loaded / total) * 100) : 0;
-                                this.updateProgress(progress);
-                                controller.enqueue(value);
-                                return pump();
-                            });
-                        }
-                        return pump.call(this);
-                    }.bind(this)
-                });
-                
-                const newResponse = new Response(stream);
-                return await newResponse.json();
+async fetchYearData(year) {
+    try {
+        const response = await fetch(`${year}.json`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        // Egyszerűbb progress tracking
+        const total = parseInt(response.headers.get('content-length')) || 1000000; // fallback size
+        let progress = 0;
+        
+        // Simulate progress for better UX
+        const progressInterval = setInterval(() => {
+            if (progress < 90) {
+                progress += Math.random() * 20;
+                this.updateProgress(Math.min(90, Math.round(progress)));
             }
-
+        }, 100);
+        
+        // Direct JSON parsing
+        const data = await response.json();
+        
+        // Complete progress
+        clearInterval(progressInterval);
+        this.updateProgress(100);
+        
+        return data;
+        
+    } catch (error) {
+        console.error(`Fetch error for ${year}:`, error);
+        throw error;
+    }
+}
             async loadAllYears() {
                 this.showPreloader('Összes adat betöltése...');
                 
