@@ -52,24 +52,25 @@ window.dashboardUtils = {
             pageLength: 25,
             lengthMenu: [[25, 50, 100, 500, -1], [25, 50, 100, 500, "Összes"]],
             responsive: true,
-            dom: 'Blfrtip',
+            dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                 '<"row"<"col-sm-12"B>>' +
+                 '<"row"<"col-sm-12"tr>>' +
+                 '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
             buttons: [
                 {
                     extend: 'csv',
-                    text: 'CSV'
+                    text: '<i class="bi bi-filetype-csv me-1"></i>CSV',
+                    className: 'btn btn-outline-primary btn-sm'
                 },
                 {
                     extend: 'excel',
-                    text: 'Excel'
+                    text: '<i class="bi bi-file-earmark-excel me-1"></i>Excel',
+                    className: 'btn btn-outline-success btn-sm'
                 },
                 {
                     extend: 'copy',
-                    text: 'JSON',
-                    action: function(e, dt, button, config) {
-                        const data = dt.data().toArray();
-                        navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-                        alert('JSON adatok vágólapra másolva!');
-                    }
+                    text: '<i class="bi bi-clipboard me-1"></i>Másolás',
+                    className: 'btn btn-outline-info btn-sm'
                 }
             ],
             language: {
