@@ -1,931 +1,146 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Felajánlások Adatmegjelenítő 2023-2025</title>
-    
-    <!-- Bootstrap 5.3 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
-    
-    <style>
-        .stats-card {
-            border-left: 4px solid #0d6efd;
-        }
-        .table-container {
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .adoszam-display {
-            font-family: monospace;
-            font-weight: bold;
-        }
-        .loading-spinner {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 200px;
-        }
-        .nav-pills .nav-link.active {
-            background-color: #0d6efd;
-        }
-        .year-badge {
-            font-size: 0.8em;
-            margin-left: 8px;
-        }
-        .combined-table th {
-            background-color: #f8f9fa;
-        }
-        .positive-change {
-            color: #198754;
-        }
-        .negative-change {
-            color: #dc3545;
-        }
-        .no-change {
-            color: #6c757d;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Felajánlások Adatmegjelenítő 2023-2025</title>
+
+  <!-- Bootstrap 5.3 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+
+  <style>
+    .stats-card { border-left: 4px solid #0d6efd; }
+    .adoszam-display { font-family: monospace; font-weight: bold; }
+    .table-container { box-shadow: 0 0 20px rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; }
+    .nav-pills .nav-link.active { background-color: #0d6efd; }
+    .year-badge { font-size: 0.8em; margin-left: 8px; }
+  </style>
 </head>
 <body>
-    <div class="container-fluid py-4">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-file-earmark-spreadsheet text-primary me-3" style="font-size: 2rem;"></i>
-                        <div>
-                            <h1 class="mb-0">Felajánlások Adatmegjelenítő</h1>
-                            <p class="text-muted mb-0">2023-2025 évek összehasonlító elemzése</p>
-                        </div>
-                    </div>
-                    <div class="text-end">
-                        <div class="spinner-border text-primary d-none" id="loadingSpinner" role="status">
-                            <span class="visually-hidden">Betöltés...</span>
-                        </div>
-                        <span class="badge bg-success d-none" id="loadingComplete">
-                            <i class="bi bi-check-circle me-1"></i>Adatok betöltve
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="container-fluid py-4">
+  <h1 class="mb-4"><i class="bi bi-bar-chart me-2"></i>Felajánlások 2023–2025</h1>
 
-        <!-- Loading Alert -->
-        <div class="alert alert-info" id="loadingAlert">
-            <div class="d-flex align-items-center">
-                <div class="spinner-border spinner-border-sm me-3" role="status">
-                    <span class="visually-hidden">Betöltés...</span>
-                </div>
-                <div>
-                    <strong>Adatok betöltése folyamatban...</strong>
-                    <div id="loadingStatus">JSON fájlok keresése...</div>
-                </div>
-            </div>
-        </div>
+  <!-- Tabs -->
+  <ul class="nav nav-pills mb-3" id="yearTabs" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#combined">Összesítő</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#year2025">2025</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#year2024">2024</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#year2023">2023</button></li>
+  </ul>
 
-        <!-- Main Content -->
-        <div id="mainContent" style="display: none;">
-            <!-- Navigation Tabs -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <ul class="nav nav-pills justify-content-center" id="yearTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="combined-tab" data-bs-toggle="pill" data-bs-target="#combined" type="button" role="tab">
-                                <i class="bi bi-bar-chart me-2"></i>Összesítő elemzés
-                                <span class="badge bg-primary year-badge">3 év</span>
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="year2025-tab" data-bs-toggle="pill" data-bs-target="#year2025" type="button" role="tab">
-                                <i class="bi bi-calendar me-2"></i>2025
-                                <span class="badge bg-info year-badge" id="count2025">0</span>
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="year2024-tab" data-bs-toggle="pill" data-bs-target="#year2024" type="button" role="tab">
-                                <i class="bi bi-calendar me-2"></i>2024
-                                <span class="badge bg-info year-badge" id="count2024">0</span>
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="year2023-tab" data-bs-toggle="pill" data-bs-target="#year2023" type="button" role="tab">
-                                <i class="bi bi-calendar me-2"></i>2023
-                                <span class="badge bg-info year-badge" id="count2023">0</span>
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Tab Content -->
-            <div class="tab-content" id="yearTabContent">
-                <!-- Összesítő Tab -->
-                <div class="tab-pane fade show active" id="combined" role="tabpanel">
-                    <!-- Combined Stats -->
-                    <div class="row mb-4" id="combinedStats">
-                        <div class="col-md-3 mb-3">
-                            <div class="card stats-card h-100 border-primary">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-buildings text-primary me-3" style="font-size: 2rem;"></i>
-                                        <div>
-                                            <h5 class="card-title mb-0">Összes cég</h5>
-                                            <h3 class="mb-0" id="combinedTotalCompanies">0</h3>
-                                            <small class="text-muted">3 év összesen</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card stats-card h-100 border-success">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-cash-stack text-success me-3" style="font-size: 2rem;"></i>
-                                        <div>
-                                            <h5 class="card-title mb-0">Teljes összeg</h5>
-                                            <h3 class="mb-0" id="combinedTotalAmount">0 Ft</h3>
-                                            <small class="text-muted">3 év összesen</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card stats-card h-100 border-info">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-people-fill text-info me-3" style="font-size: 2rem;"></i>
-                                        <div>
-                                            <h5 class="card-title mb-0">Összes felajánló</h5>
-                                            <h3 class="mb-0" id="combinedTotalDonors">0 fő</h3>
-                                            <small class="text-muted">3 év összesen</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card stats-card h-100 border-warning">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-calculator text-warning me-3" style="font-size: 2rem;"></i>
-                                        <div>
-                                            <h5 class="card-title mb-0">Átlag/fő</h5>
-                                            <h3 class="mb-0" id="combinedAvgAmount">0 Ft</h3>
-                                            <small class="text-muted">3 éves átlag</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Combined Table -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card table-container">
-                                <div class="card-header bg-primary text-white">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">
-                                            <i class="bi bi-table me-2"></i>Háromévenkénti összehasonlítás
-                                        </h5>
-                                        <button class="btn btn-light btn-sm" id="exportCombinedBtn">
-                                            <i class="bi bi-download me-2"></i>Export CSV
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-body p-0">
-                                    <table id="combinedTable" class="table table-striped table-hover mb-0 combined-table">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                <th rowspan="2">Cégnév</th>
-                                                <th rowspan="2">Adószám</th>
-                                                <th colspan="2" class="text-center">2023</th>
-                                                <th colspan="2" class="text-center">2024</th>
-                                                <th colspan="2" class="text-center">2025</th>
-                                                <th rowspan="2">Összes felajánlás</th>
-                                                <th rowspan="2">Összes felajánló</th>
-                                                <th rowspan="2">Átlag/fő (3 év)</th>
-                                            </tr>
-                                            <tr>
-                                                <th>Összeg</th>
-                                                <th>Fő</th>
-                                                <th>Összeg</th>
-                                                <th>Fő</th>
-                                                <th>Összeg</th>
-                                                <th>Fő</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2025 Tab -->
-                <div class="tab-pane fade" id="year2025" role="tabpanel">
-                    <div class="row mb-4" id="stats2025"></div>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card table-container">
-                                <div class="card-header bg-info text-white">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">
-                                            <i class="bi bi-calendar me-2"></i>2025 évi felajánlások
-                                        </h5>
-                                        <button class="btn btn-light btn-sm export-btn" data-year="2025">
-                                            <i class="bi bi-download me-2"></i>Export CSV
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-body p-0">
-                                    <table id="table2025" class="table table-striped table-hover mb-0">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                <th>Sorszám</th>
-                                                <th>Adószám</th>
-                                                <th>Cégnév</th>
-                                                <th>Székhely</th>
-                                                <th>Felajánlott összeg</th>
-                                                <th>Felajánlók száma</th>
-                                                <th>Átlagos felajánlás</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2024 Tab -->
-                <div class="tab-pane fade" id="year2024" role="tabpanel">
-                    <div class="row mb-4" id="stats2024"></div>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card table-container">
-                                <div class="card-header bg-success text-white">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">
-                                            <i class="bi bi-calendar me-2"></i>2024 évi felajánlások
-                                        </h5>
-                                        <button class="btn btn-light btn-sm export-btn" data-year="2024">
-                                            <i class="bi bi-download me-2"></i>Export CSV
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-body p-0">
-                                    <table id="table2024" class="table table-striped table-hover mb-0">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                <th>Sorszám</th>
-                                                <th>Adószám</th>
-                                                <th>Cégnév</th>
-                                                <th>Székhely</th>
-                                                <th>Felajánlott összeg</th>
-                                                <th>Felajánlók száma</th>
-                                                <th>Átlagos felajánlás</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2023 Tab -->
-                <div class="tab-pane fade" id="year2023" role="tabpanel">
-                    <div class="row mb-4" id="stats2023"></div>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card table-container">
-                                <div class="card-header bg-warning text-dark">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">
-                                            <i class="bi bi-calendar me-2"></i>2023 évi felajánlások
-                                        </h5>
-                                        <button class="btn btn-dark btn-sm export-btn" data-year="2023">
-                                            <i class="bi bi-download me-2"></i>Export CSV
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-body p-0">
-                                    <table id="table2023" class="table table-striped table-hover mb-0">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                <th>Sorszám</th>
-                                                <th>Adószám</th>
-                                                <th>Cégnév</th>
-                                                <th>Székhely</th>
-                                                <th>Felajánlott összeg</th>
-                                                <th>Felajánlók száma</th>
-                                                <th>Átlagos felajánlás</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="combined">
+      <div id="combinedStats" class="row mb-3"></div>
+      <table id="combinedTable" class="table table-striped table-hover w-100"></table>
     </div>
+    <div class="tab-pane fade" id="year2025"><div id="stats2025" class="row mb-3"></div><table id="table2025" class="table table-striped w-100"></table></div>
+    <div class="tab-pane fade" id="year2024"><div id="stats2024" class="row mb-3"></div><table id="table2024" class="table table-striped w-100"></table></div>
+    <div class="tab-pane fade" id="year2023"><div id="stats2023" class="row mb-3"></div><table id="table2023" class="table table-striped w-100"></table></div>
+  </div>
+</div>
 
-    <!-- Error Modal -->
-    <div class="modal fade" id="errorModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">
-                        <i class="bi bi-exclamation-triangle me-2"></i>Hiba
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p id="errorMessage"></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 
-    <!-- Scripts -->
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <!-- Bootstrap 5.3 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Lodash -->
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
-    <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-    <!-- Moment.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/hu.min.js"></script>
+<script>
+$(async function() {
+  let datasets = {};
+  let years = [2023, 2024, 2025];
 
-    <script>
-        $(document).ready(function() {
-            // Moment.js magyar lokalizáció
-            moment.locale('hu');
-            
-            let data2023 = null;
-            let data2024 = null;
-            let data2025 = null;
-            let dataTables = {};
-
-            // Automatikus JSON fájlok betöltése
-            loadAllJSONFiles();
-
-            // Export gombok események
-            $('.export-btn').on('click', function() {
-                const year = $(this).data('year');
-                exportToCSV(year);
-            });
-
-            $('#exportCombinedBtn').on('click', function() {
-                exportCombinedToCSV();
-            });
-
-            // JSON fájlok betöltése
-            function loadAllJSONFiles() {
-                $('#loadingSpinner').removeClass('d-none');
-                updateLoadingStatus('JSON fájlok betöltése...');
-
-                const loadPromises = [
-                    loadJSONFile('2023.json', '2023'),
-                    loadJSONFile('2024.json', '2024'), 
-                    loadJSONFile('2025.json', '2025')
-                ];
-
-                Promise.allSettled(loadPromises).then(results => {
-                    let successCount = 0;
-                    results.forEach((result, index) => {
-                        if (result.status === 'fulfilled') {
-                            successCount++;
-                            const year = ['2023', '2024', '2025'][index];
-                            window[`data${year}`] = result.value;
-                        }
-                    });
-
-                    if (successCount === 0) {
-                        showError('Nem sikerült betölteni egyetlen JSON fájlt sem!');
-                        return;
-                    }
-
-                    $('#loadingAlert').hide();
-                    $('#loadingSpinner').addClass('d-none');
-                    $('#loadingComplete').removeClass('d-none');
-                    $('#mainContent').show();
-
-                    processAllData();
-                });
-            }
-
-            function loadJSONFile(filename, year) {
-                return new Promise((resolve, reject) => {
-                    updateLoadingStatus(`${filename} betöltése...`);
-                    
-                    $.ajax({
-                        url: filename,
-                        type: 'GET',
-                        dataType: 'json',
-                        timeout: 10000,
-                        success: function(data) {
-                            updateLoadingStatus(`${filename} sikeresen betöltve ✓`);
-                            resolve(data);
-                        },
-                        error: function(xhr, status, error) {
-                            updateLoadingStatus(`${filename} betöltése sikertelen ✗`);
-                            reject(new Error(`${filename}: ${error}`));
-                        }
-                    });
-                });
-            }
-
-            function updateLoadingStatus(message) {
-                $('#loadingStatus').text(message);
-            }
-
-            // Összes adat feldolgozása
-            function processAllData() {
-                // Évenkénti adatok feldolgozása
-                if (data2023) processYearData(data2023, '2023');
-                if (data2024) processYearData(data2024, '2024');
-                if (data2025) processYearData(data2025, '2025');
-
-                // Összesített adatok feldolgozása
-                processCombinedData();
-            }
-
-            // Egy év adatainak feldolgozása
-            function processYearData(data, year) {
-                if (!data.adatok || !Array.isArray(data.adatok)) return;
-
-                // Statisztikák számítása
-                const stats = calculateYearStats(data.adatok);
-                displayYearStats(stats, year);
-
-                // Táblázat inicializálása
-                initializeYearTable(data.adatok, year);
-
-                // Tab badge frissítése
-                $(`#count${year}`).text(data.adatok.length);
-            }
-
-            // Év statisztikák számítása
-function calculateYearStats(adatok) {
-    const totalCompanies = adatok.length;
-    const totalAmount = _.sumBy(adatok, 'o');   // felajanlottOsszeg helyett "o"
-    const totalDonors = _.sumBy(adatok, 'f');   // felajanlokSzama helyett "f"
-    const avgAmount = totalDonors > 0 ? Math.round(totalAmount / totalDonors) : 0;
-
-    return { totalCompanies, totalAmount, totalDonors, avgAmount };
-}
-
-
-            // Év statisztikák megjelenítése
-            function displayYearStats(stats, year) {
-                const statsHtml = `
-                    <div class="col-md-3 mb-3">
-                        <div class="card stats-card h-100">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-building text-primary me-3" style="font-size: 2rem;"></i>
-                                    <div>
-                                        <h5 class="card-title mb-0">Cégek száma</h5>
-                                        <h3 class="mb-0">${stats.totalCompanies.toLocaleString('hu-HU')}</h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="card stats-card h-100">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-cash-coin text-success me-3" style="font-size: 2rem;"></i>
-                                    <div>
-                                        <h5 class="card-title mb-0">Összes felajánlás</h5>
-                                        <h3 class="mb-0">${stats.totalAmount.toLocaleString('hu-HU')} Ft</h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="card stats-card h-100">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-people text-info me-3" style="font-size: 2rem;"></i>
-                                    <div>
-                                        <h5 class="card-title mb-0">Összes felajánló</h5>
-                                        <h3 class="mb-0">${stats.totalDonors.toLocaleString('hu-HU')} fő</h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="card stats-card h-100">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-calculator text-warning me-3" style="font-size: 2rem;"></i>
-                                    <div>
-                                        <h5 class="card-title mb-0">Átlagos felajánlás</h5>
-                                        <h3 class="mb-0">${stats.avgAmount.toLocaleString('hu-HU')} Ft</h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                $(`#stats${year}`).html(statsHtml);
-            }
-
-            // Évenkénti táblázat inicializálása
- function initializeYearTable(adatok, year) {
-    const tableData = adatok.map(item => {
-        const avgPerDonor = item.f > 0 ? Math.round(item.o / item.f) : 0;
-        return [
-            item.i,
-            `<span class="adoszam-display">${item.a}</span>`,
-            item.n,
-            item.c,
-            item.o.toLocaleString('hu-HU') + ' Ft',
-            item.f + ' fő',
-            avgPerDonor.toLocaleString('hu-HU') + ' Ft'
-        ];
-    });
-
-    if (dataTables[`table${year}`]) {
-        dataTables[`table${year}`].destroy();
+  // JSON betöltése
+  for (let y of years) {
+    try {
+      datasets[y] = await $.getJSON(`${y}.json`);
+    } catch {
+      datasets[y] = { adatok: [] };
     }
+  }
 
-    dataTables[`table${year}`] = $(`#table${year}`).DataTable({
-        data: tableData,
-        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/hu.json' },
-        responsive: true,
-        pageLength: 25,
-        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Összes"]],
-        order: [[4, 'desc']],
-        columnDefs: [
-            { targets: [4, 6], className: 'text-end' },
-            { targets: [5], className: 'text-center' }
-        ]
+  // Egy év feldolgozása
+  function processYear(year) {
+    let adatok = datasets[year].adatok || [];
+    let totalO = _.sumBy(adatok, 'o');
+    let totalF = _.sumBy(adatok, 'f');
+    let statsHtml = `
+      <div class="col"><div class="card"><div class="card-body">Cégek: ${adatok.length}</div></div></div>
+      <div class="col"><div class="card"><div class="card-body">Összeg: ${totalO.toLocaleString('hu-HU')} Ft</div></div></div>
+      <div class="col"><div class="card"><div class="card-body">Felajánlók: ${totalF.toLocaleString('hu-HU')}</div></div></div>
+      <div class="col"><div class="card"><div class="card-body">Átlag/fő: ${(totalF>0?Math.round(totalO/totalF):0).toLocaleString('hu-HU')} Ft</div></div></div>`;
+    $(`#stats${year}`).html(statsHtml);
+
+    let tableData = adatok.map(d => [
+      d.i, `<span class="adoszam-display">${d.a}</span>`, d.n, d.c,
+      d.o.toLocaleString('hu-HU')+" Ft", d.f+" fő", d.f>0?Math.round(d.o/d.f).toLocaleString('hu-HU')+" Ft":"0 Ft"
+    ]);
+    $(`#table${year}`).DataTable({
+      data: tableData,
+      columns: [
+        { title:"Sorszám" }, { title:"Adószám" }, { title:"Név" },
+        { title:"Cím" }, { title:"Összeg" }, { title:"Fő" }, { title:"Átlag/fő" }
+      ],
+      pageLength: 25,
+      language: { url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/hu.json" }
     });
-}
+  }
 
+  years.forEach(processYear);
 
-            // Összesített adatok feldolgozása
-            function processCombinedData() {
-                const combinedData = createCombinedData();
-                displayCombinedStats(combinedData);
-                initializeCombinedTable(combinedData.companies);
-            }
-
-            // Összesített adatok létrehozása
-            function createCombinedData() {
-    const companies = {};
-    let totalAmount = 0;
-    let totalDonors = 0;
-
-    [data2023, data2024, data2025].forEach((yearData, index) => {
-        if (!yearData || !yearData.adatok) return;
-
-        const year = [2023, 2024, 2025][index];
-        yearData.adatok.forEach(item => {
-            const key = item.a; // adószám alapján azonosítjuk
-
-            if (!companies[key]) {
-                companies[key] = {
-                    nev: item.n,
-                    adoszam: item.a,
-                    szekhely: item.c || '',
-                    2023: { osszeg: 0, fo: 0 },
-                    2024: { osszeg: 0, fo: 0 },
-                    2025: { osszeg: 0, fo: 0 }
-                };
-            }
-
-            companies[key][year].osszeg += item.o;
-            companies[key][year].fo += item.f;
-        });
+  // Combined
+  let companies = {};
+  years.forEach(y => {
+    (datasets[y].adatok||[]).forEach(d => {
+      if (!companies[d.a]) companies[d.a] = { nev:d.n, a:d.a, c:d.c, [2023]:{o:0,f:0}, [2024]:{o:0,f:0}, [2025]:{o:0,f:0} };
+      companies[d.a][y].o += d.o;
+      companies[d.a][y].f += d.f;
     });
+  });
 
-    Object.values(companies).forEach(company => {
-        const companyTotal = company[2023].osszeg + company[2024].osszeg + company[2025].osszeg;
-        const companyDonors = company[2023].fo + company[2024].fo + company[2025].fo;
+  let rows = Object.values(companies).map(c => {
+    let to = c[2023].o + c[2024].o + c[2025].o;
+    let tf = c[2023].f + c[2024].f + c[2025].f;
+    return [
+      c.nev, `<span class="adoszam-display">${c.a}</span>`,
+      c[2023].o.toLocaleString('hu-HU')+" Ft", c[2023].f+" fő",
+      c[2024].o.toLocaleString('hu-HU')+" Ft", c[2024].f+" fő",
+      c[2025].o.toLocaleString('hu-HU')+" Ft", c[2025].f+" fő",
+      to.toLocaleString('hu-HU')+" Ft", tf+" fő",
+      tf>0?Math.round(to/tf).toLocaleString('hu-HU')+" Ft":"0 Ft"
+    ];
+  });
 
-        company.osszesOsszeg = companyTotal;
-        company.osszesFo = companyDonors;
-        company.atlagPerFo = companyDonors > 0 ? Math.round(companyTotal / companyDonors) : 0;
+  let totalCompanies = rows.length;
+  let totalO = _.sumBy(Object.values(companies), c => c[2023].o+c[2024].o+c[2025].o);
+  let totalF = _.sumBy(Object.values(companies), c => c[2023].f+c[2024].f+c[2025].f);
+  let avg = totalF>0?Math.round(totalO/totalF):0;
+  $('#combinedStats').html(`
+    <div class="col"><div class="card"><div class="card-body">Cégek: ${totalCompanies}</div></div></div>
+    <div class="col"><div class="card"><div class="card-body">Összesen: ${totalO.toLocaleString('hu-HU')} Ft</div></div></div>
+    <div class="col"><div class="card"><div class="card-body">Felajánlók: ${totalF}</div></div></div>
+    <div class="col"><div class="card"><div class="card-body">Átlag/fő: ${avg.toLocaleString('hu-HU')} Ft</div></div></div>
+  `);
 
-        totalAmount += companyTotal;
-        totalDonors += companyDonors;
-    });
-
-    return {
-        companies: Object.values(companies),
-        totalCompanies: Object.keys(companies).length,
-        totalAmount,
-        totalDonors,
-        avgAmount: totalDonors > 0 ? Math.round(totalAmount / totalDonors) : 0
-    };
-}
-
-
-               
-
-            // Összesített statisztikák megjelenítése
-            function displayCombinedStats(data) {
-                $('#combinedTotalCompanies').text(data.totalCompanies.toLocaleString('hu-HU'));
-                $('#combinedTotalAmount').text(data.totalAmount.toLocaleString('hu-HU') + ' Ft');
-                $('#combinedTotalDonors').text(data.totalDonors.toLocaleString('hu-HU') + ' fő');
-                $('#combinedAvgAmount').text(data.avgAmount.toLocaleString('hu-HU') + ' Ft');
-            }
-
-            // Összesített táblázat inicializálása
-            function initializeCombinedTable(companies) {
-    const tableData = companies.map(company => {
-        return [
-            company.nev,
-            `<span class="adoszam-display">${company.adoszam}</span>`,
-            company[2023].osszeg.toLocaleString('hu-HU') + ' Ft',
-            company[2023].fo + ' fő',
-            company[2024].osszeg.toLocaleString('hu-HU') + ' Ft',
-            company[2024].fo + ' fő',
-            company[2025].osszeg.toLocaleString('hu-HU') + ' Ft',
-            company[2025].fo + ' fő',
-            company.osszesOsszeg.toLocaleString('hu-HU') + ' Ft',
-            company.osszesFo + ' fő',
-            company.atlagPerFo.toLocaleString('hu-HU') + ' Ft'
-        ];
-    });
-
-    if (dataTables['combinedTable']) {
-        dataTables['combinedTable'].destroy();
-    }
-
-    dataTables['combinedTable'] = $('#combinedTable').DataTable({
-        data: tableData,
-        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/hu.json' },
-        responsive: true,
-        pageLength: 25,
-        order: [[8, 'desc']],
-        columnDefs: [
-            { targets: [2, 4, 6, 8, 10], className: 'text-end' },
-            { targets: [3, 5, 7, 9], className: 'text-center' }
-        ],
-        scrollX: true
-    });
-}
-
-
-            // Évenkénti CSV export
-            function exportToCSV(year) {
-                const data = window[`data${year}`];
-                if (!data || !data.adatok) {
-                    showError('Nincs exportálható adat!');
-                    return;
-                }
-
-                const csvContent = generateYearCSV(data.adatok);
-                downloadCSV(csvContent, `felajanlasok_${year}_${moment().format('YYYY-MM-DD_HH-mm-ss')}.csv`);
-            }
-
-            // Összesített CSV export
-            function exportCombinedToCSV() {
-                const combinedData = createCombinedData();
-                if (!combinedData.companies.length) {
-                    showError('Nincs exportálható adat!');
-                    return;
-                }
-
-                const csvContent = generateCombinedCSV(combinedData.companies);
-                downloadCSV(csvContent, `felajanlasok_osszesitett_${moment().format('YYYY-MM-DD_HH-mm-ss')}.csv`);
-            }
-
-            // Évenkénti CSV generálás
-            function generateYearCSV(adatok) {
-                const headers = [
-                    'Sorszám', 'Adószám', 'Cégnév', 'Székhely', 
-                    'Felajánlott összeg (Ft)', 'Felajánlók száma (fő)', 'Átlagos felajánlás (Ft)'
-                ];
-                
-                let csv = headers.join(';') + '\n';
-                
-                adatok.forEach(item => {
-                    const adoszam = `${item.adoszam.resz1}-${item.adoszam.resz2}-${item.adoszam.resz3}`;
-                    const avgPerDonor = item.felajanlokSzama > 0 ? 
-                        Math.round(item.felajanlottOsszeg / item.felajanlokSzama) : 0;
-                    
-                    const row = [
-                        item.sorszam,
-                        adoszam,
-                        `"${item.nev.replace(/"/g, '""')}"`,
-                        `"${item.szekhely.replace(/"/g, '""')}"`,
-                        item.felajanlottOsszeg,
-                        item.felajanlokSzama,
-                        avgPerDonor
-                    ];
-                    csv += row.join(';') + '\n';
-                });
-                
-                return '\uFEFF' + csv;
-            }
-
-            // Összesített CSV generálás
-            function generateCombinedCSV(companies) {
-                const headers = [
-                    'Cégnév', 'Adószám', 
-                    '2023 összeg (Ft)', '2023 felajánlók (fő)',
-                    '2024 összeg (Ft)', '2024 felajánlók (fő)',
-                    '2025 összeg (Ft)', '2025 felajánlók (fő)',
-                    'Összes felajánlás (Ft)', 'Összes felajánló (fő)', 'Átlagos felajánlás/fő (Ft)'
-                ];
-                
-                let csv = headers.join(';') + '\n';
-                
-                companies.forEach(company => {
-                    const adoszam = `${company.adoszam.resz1}-${company.adoszam.resz2}-${company.adoszam.resz3}`;
-                    
-                    const row = [
-                        `"${company.nev.replace(/"/g, '""')}"`,
-                        adoszam,
-                        company[2023].osszeg,
-                        company[2023].fo,
-                        company[2024].osszeg,
-                        company[2024].fo,
-                        company[2025].osszeg,
-                        company[2025].fo,
-                        company.osszesOsszeg,
-                        company.osszesFo,
-                        company.atlagPerFo
-                    ];
-                    csv += row.join(';') + '\n';
-                });
-                
-                return '\uFEFF' + csv;
-            }
-
-            // CSV letöltés
-            function downloadCSV(csvContent, fileName) {
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                
-                if (link.download !== undefined) {
-                    const url = URL.createObjectURL(blob);
-                    link.setAttribute('href', url);
-                    link.setAttribute('download', fileName);
-                    link.style.visibility = 'hidden';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                }
-            }
-
-            // Hiba megjelenítése
-            function showError(message) {
-                $('#errorMessage').text(message);
-                $('#errorModal').modal('show');
-            }
-
-            // Demo adatok betöltése (fejlesztéshez)
-            window.loadDemoData = function() {
-                const demoData2025 = {
-                    "exportDatum": moment().format(),
-                    "forrás": "2025 munkalap",
-                    "rekordokSzáma": 3,
-                    "adatok": [
-                        {
-                            "sorszam": "1",
-                            "adoszam": {
-                                "resz1": "12345678",
-                                "resz2": "2",
-                                "resz3": "01"
-                            },
-                            "nev": "ABC Kereskedelmi Kft.",
-                            "szekhely": "1234 Budapest, Fő utca 12.",
-                            "felajanlottOsszeg": 150000,
-                            "felajanlokSzama": 5
-                        },
-                        {
-                            "sorszam": "2",
-                            "adoszam": {
-                                "resz1": "98765432",
-                                "resz2": "1",
-                                "resz3": "09"
-                            },
-                            "nev": "XYZ Ipari Zrt.",
-                            "szekhely": "4567 Debrecen, Nagy Lajos király útja 34.",
-                            "felajanlottOsszeg": 250000,
-                            "felajanlokSzama": 12
-                        },
-                        {
-                            "sorszam": "3",
-                            "adoszam": {
-                                "resz1": "11223344",
-                                "resz2": "5",
-                                "resz3": "56"
-                            },
-                            "nev": "DEF Szolgáltató Bt.",
-                            "szekhely": "7890 Szeged, Dugonics tér 1.",
-                            "felajanlottOsszeg": 75000,
-                            "felajanlokSzama": 3
-                        }
-                    ]
-                };
-
-                const demoData2024 = {
-                    "exportDatum": moment().subtract(1, 'year').format(),
-                    "forrás": "2024 munkalap",
-                    "rekordokSzáma": 2,
-                    "adatok": [
-                        {
-                            "sorszam": "1",
-                            "adoszam": {
-                                "resz1": "12345678",
-                                "resz2": "2",
-                                "resz3": "01"
-                            },
-                            "nev": "ABC Kereskedelmi Kft.",
-                            "szekhely": "1234 Budapest, Fő utca 12.",
-                            "felajanlottOsszeg": 120000,
-                            "felajanlokSzama": 4
-                        },
-                        {
-                            "sorszam": "2",
-                            "adoszam": {
-                                "resz1": "98765432",
-                                "resz2": "1",
-                                "resz3": "09"
-                            },
-                            "nev": "XYZ Ipari Zrt.",
-                            "szekhely": "4567 Debrecen, Nagy Lajos király útja 34.",
-                            "felajanlottOsszeg": 200000,
-                            "felajanlokSzama": 10
-                        }
-                    ]
-                };
-
-                const demoData2023 = {
-                    "exportDatum": moment().subtract(2, 'years').format(),
-                    "forrás": "2023 munkalap",
-                    "rekordokSzáma": 1,
-                    "adatok": [
-                        {
-                            "sorszam": "1",
-                            "adoszam": {
-                                "resz1": "12345678",
-                                "resz2": "2",
-                                "resz3": "01"
-                            },
-                            "nev": "ABC Kereskedelmi Kft.",
-                            "szekhely": "1234 Budapest, Fő utca 12.",
-                            "felajanlottOsszeg": 100000,
-                            "felajanlokSzama": 3
-                        }
-                    ]
-                };
-                
-                data2023 = demoData2023;
-                data2024 = demoData2024;
-                data2025 = demoData2025;
-                
-                $('#loadingAlert').hide();
-                $('#loadingSpinner').addClass('d-none');
-                $('#loadingComplete').removeClass('d-none');
-                $('#mainContent').show();
-                
-                processAllData();
-            };
-
-            // Demo gomb hozzáadása (fejlesztéshez)
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                const demoBtn = $('<button class="btn btn-outline-secondary btn-sm ms-2">Demo adat</button>');
-                demoBtn.on('click', loadDemoData);
-                $('.d-flex.align-items-center').first().append(demoBtn);
-            }
-        });
-    </script>
+  $('#combinedTable').DataTable({
+    data: rows,
+    columns: [
+      { title:"Név" },{ title:"Adószám" },
+      { title:"2023 összeg" },{ title:"2023 fő" },
+      { title:"2024 összeg" },{ title:"2024 fő" },
+      { title:"2025 összeg" },{ title:"2025 fő" },
+      { title:"Összes összeg" },{ title:"Összes fő" },{ title:"Átlag/fő" }
+    ],
+    scrollX:true,
+    pageLength:25,
+    language:{ url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/hu.json" }
+  });
+});
+</script>
 </body>
 </html>
