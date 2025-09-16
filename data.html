@@ -788,13 +788,16 @@ async fetchYearData(year) {
                     this.dataTables.combined.destroy();
                 }
 
-                this.dataTables.combined = $('#combinedTable').DataTable({
+               this.dataTables.combined = $('#combinedTable').DataTable({
     data: rows,
     pageLength: 25,
-    responsive: false, // Kikapcsoljuk a responsive módot
-    scrollX: true,
-    scrollCollapse: true, // Hozzáadjuk a scroll collapse-t
-    fixedHeader: true, // Fix fejléc hozzáadása
+    responsive: {
+        details: {
+            type: 'column',
+            target: 0
+        }
+    },
+    scrollX: false, // Kikapcsoljuk a scrollX-et
     dom: 'Bfrtip',
     buttons: [
         {
@@ -818,12 +821,13 @@ async fetchYearData(year) {
     language: {
         url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/hu.json"
     },
-    order: [[7, 'desc']], // Sort by total amount descending
+    order: [[7, 'desc']],
     columnDefs: [
-        { targets: '_all', className: 'text-nowrap' } // Minden oszlopnál nowrap
+        { responsivePriority: 1, targets: [0, 7] }, // Név és összes összeg mindig látható
+        { responsivePriority: 2, targets: [9, 10] }, // Átlag/fő és éves jövedelem másodlagos
+        { className: 'none', targets: [11, 12] } // Adószám és cím rejtett kisebb képernyőn
     ]
-});
-
+}
             updateUI() {
                 if (this.loadedYears.size === this.years.length) {
                     $('#loadAll').html('<i class="bi bi-check-circle me-1"></i>Betöltve')
