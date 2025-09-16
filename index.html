@@ -4,99 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JSON adatok táblázatban</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        h1 {
-            color: #333;
-        }
-    </style>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link href="https://cdn.datatables.net/2.0.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 </head>
 <body>
 
-    <h1>Adatok a táblázatban</h1>
-    <div id="table-container"></div>
+    <div class="container mt-5">
+        <h1>Adatok a táblázatban</h1>
+        <p>
+            A táblázat adatai a <code>adatok.json</code> fájlból származnak.
+            <a href="civil.html">Ugrás a civil.html oldalra</a>
+        </p>
+        <hr>
 
-    <a href="civil.html">Ugrás a Civil.hu oldalra</a>
+        <table id="myTable" class="table table-striped table-bordered" style="width:100%">
+            <thead>
+                </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.datatables.net/2.0.7/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.7/js/dataTables.bootstrap5.min.js"></script>
 
     <script>
-        // Ez a függvény létrehozza a HTML táblázatot a JSON adatokból.
-        function createTable(data) {
-            if (!Array.isArray(data) || data.length === 0) {
-                document.getElementById('table-container').innerHTML = '<p>Nincsenek adatok a JSON fájlban vagy a formátum hibás.</p>';
-                return;
-            }
+        $(document).ready(function() {
+            // A jQuery segítségével kérjük le a JSON fájlt
+            $.getJSON('adatok.json', function(data) {
+                let tableData = [];
+                let columns = [];
+                let headers = [];
 
-            // Létrehozzuk a HTML táblázat elemet.
-            const table = document.createElement('table');
-            const thead = document.createElement('thead');
-            const tbody = document.createElement('tbody');
-
-            // --- Fejléc létrehozása (a JSON objektum kulcsai alapján) ---
-            const headers = Object.keys(data[0]);
-            const headerRow = document.createElement('tr');
-            headers.forEach(headerText => {
-                const th = document.createElement('th');
-                th.textContent = headerText.toUpperCase();
-                headerRow.appendChild(th);
-            });
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-
-            // --- Táblázat tartalmának létrehozása ---
-            data.forEach(rowData => {
-                const tr = document.createElement('tr');
-                headers.forEach(header => {
-                    const td = document.createElement('td');
-                    td.textContent = rowData[header];
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-            });
-            table.appendChild(tbody);
-
-            // A teljes táblázat hozzáadása a kijelölt div-hez.
-            document.getElementById('table-container').appendChild(table);
-        }
-
-        // A 'fetch' metódus lekéri az adatokat az adatok.json fájlból.
-        fetch('adatok.json')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP hiba! Státusz: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Ellenőrizzük, hogy az adatok tartalmazzák-e a 'felhasznalok' kulcsot.
+                // Ellenőrizzük, hogy a JSON adatok tartalmazzák-e a 'felhasznalok' kulcsot.
                 if (data && data.felhasznalok) {
-                    // Ha igen, a 'felhasznalok' tömböt adjuk át a függvénynek.
-                    createTable(data.felhasznalok);
+                    tableData = data.felhasznalok;
                 } else {
-                    // Ha a JSON fájl egyből a tömböt tartalmazza (például `[...]` formátumban).
-                    createTable(data);
+                    // Ha a JSON fájl egyből a tömböt tartalmazza.
+                    tableData = data;
+                }
+
+                if (tableData.length > 0) {
+                    // Lodash segítségével kinyerjük az oszlopok neveit az első adatsorból.
+                    headers = _.keys(tableData[0]);
+
+                    // Dinamikusan létrehozzuk a Datatables oszlopdefinícióját.
+                    columns = headers.map(function(header) {
+                        return {
+                            "data": header,
+                            "title": _.startCase(header) // Pl. 'nev' helyett 'Nev' lesz a fejlécben
+                        };
+                    });
+
+                    // Felépítjük a táblázat fejlécét dinamikusan.
+                    const headerRow = `<tr>${headers.map(h => `<th>${_.startCase(h)}</th>`).join('')}</tr>`;
+                    $('#myTable thead').html(headerRow);
+                    
+                    // Inicializáljuk a Datatables-t a lekért adatokkal és oszlopdefinícióval.
+                    $('#myTable').DataTable({
+                        data: tableData,
+                        columns: columns,
+                        responsive: true,
+                        language: {
+                            url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/hu.json' // Magyar nyelv beállítása
+                        }
+                    });
+
+                } else {
+                    // Hibaüzenet, ha a JSON fájl üres
+                    $('#myTable tbody').html('<tr><td colspan="100%">Nincsenek adatok a JSON fájlban.</td></tr>');
                 }
             })
-            .catch(error => {
-                console.error('Hiba történt a JSON fájl betöltésekor:', error);
-                document.getElementById('table-container').innerHTML = `<p>Hiba történt az adatok betöltésekor: ${error.message}</p>`;
+            .fail(function(jqxhr, textStatus, error) {
+                const err = textStatus + ", " + error;
+                console.error("Hiba történt a JSON fájl betöltésekor: " + err);
+                $('#myTable tbody').html('<tr><td colspan="100%">Hiba történt az adatok betöltésekor.</td></tr>');
             });
+        });
     </script>
-
 </body>
 </html>
