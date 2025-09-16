@@ -49,22 +49,26 @@
         }
 
         // A 'fetch' metódus lekéri az adatokat az adatok.json fájlból.
-        fetch('adatok.json')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP hiba! Státusz: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Meghívjuk a függvényt, ami létrehozza a táblázatot.
-                // Itt hívjuk meg a fenti createTable függvényt!
-                createTable(data);
-            })
-            .catch(error => {
-                console.error('Hiba történt a JSON fájl betöltésekor:', error);
-                document.getElementById('table-container').innerHTML = `<p>Hiba történt az adatok betöltésekor: ${error.message}</p>`;
-            });
+            fetch('adatok.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP hiba! Státusz: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // A JSON objektumból a 'felhasznalok' kulcs értékét adjuk át a függvénynek.
+            if (data && data.felhasznalok) {
+                createTable(data.felhasznalok);
+            } else {
+                document.getElementById('table-container').innerHTML = '<p>A JSON fájl nem a várt formátumú vagy üres.</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Hiba történt a JSON fájl betöltésekor:', error);
+            document.getElementById('table-container').innerHTML = `<p>Hiba történt az adatok betöltésekor: ${error.message}</p>`;
+        });
+
     </script>
 
 </body>
