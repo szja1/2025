@@ -490,19 +490,15 @@
             }
 
             // Év statisztikák számítása
-            function calculateYearStats(adatok) {
-                const totalCompanies = adatok.length;
-                const totalAmount = _.sumBy(adatok, 'felajanlottOsszeg');
-                const totalDonors = _.sumBy(adatok, 'felajanlokSzama');
-                const avgAmount = totalDonors > 0 ? Math.round(totalAmount / totalDonors) : 0;
+function calculateYearStats(adatok) {
+    const totalCompanies = adatok.length;
+    const totalAmount = _.sumBy(adatok, 'o');   // felajanlottOsszeg helyett "o"
+    const totalDonors = _.sumBy(adatok, 'f');   // felajanlokSzama helyett "f"
+    const avgAmount = totalDonors > 0 ? Math.round(totalAmount / totalDonors) : 0;
 
-                return {
-                    totalCompanies,
-                    totalAmount,
-                    totalDonors,
-                    avgAmount
-                };
-            }
+    return { totalCompanies, totalAmount, totalDonors, avgAmount };
+}
+
 
             // Év statisztikák megjelenítése
             function displayYearStats(stats, year) {
@@ -565,48 +561,38 @@
             }
 
             // Évenkénti táblázat inicializálása
-            function initializeYearTable(adatok, year) {
-                const tableData = adatok.map(item => {
-                    const adoszam = `${item.adoszam.resz1}-${item.adoszam.resz2}-${item.adoszam.resz3}`;
-                    const avgPerDonor = item.felajanlokSzama > 0 ? 
-                        Math.round(item.felajanlottOsszeg / item.felajanlokSzama) : 0;
-                    
-                    return [
-                        item.sorszam,
-                        `<span class="adoszam-display">${adoszam}</span>`,
-                        item.nev,
-                        item.szekhely,
-                        item.felajanlottOsszeg.toLocaleString('hu-HU') + ' Ft',
-                        item.felajanlokSzama + ' fő',
-                        avgPerDonor.toLocaleString('hu-HU') + ' Ft'
-                    ];
-                });
+ function initializeYearTable(adatok, year) {
+    const tableData = adatok.map(item => {
+        const avgPerDonor = item.f > 0 ? Math.round(item.o / item.f) : 0;
+        return [
+            item.i,
+            `<span class="adoszam-display">${item.a}</span>`,
+            item.n,
+            item.c,
+            item.o.toLocaleString('hu-HU') + ' Ft',
+            item.f + ' fő',
+            avgPerDonor.toLocaleString('hu-HU') + ' Ft'
+        ];
+    });
 
-                if (dataTables[`table${year}`]) {
-                    dataTables[`table${year}`].destroy();
-                }
+    if (dataTables[`table${year}`]) {
+        dataTables[`table${year}`].destroy();
+    }
 
-                dataTables[`table${year}`] = $(`#table${year}`).DataTable({
-                    data: tableData,
-                    language: {
-                        url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/hu.json'
-                    },
-                    responsive: true,
-                    pageLength: 25,
-                    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Összes"]],
-                    order: [[4, 'desc']],
-                    columnDefs: [
-                        {
-                            targets: [4, 6],
-                            className: 'text-end'
-                        },
-                        {
-                            targets: [5],
-                            className: 'text-center'
-                        }
-                    ]
-                });
-            }
+    dataTables[`table${year}`] = $(`#table${year}`).DataTable({
+        data: tableData,
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/hu.json' },
+        responsive: true,
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Összes"]],
+        order: [[4, 'desc']],
+        columnDefs: [
+            { targets: [4, 6], className: 'text-end' },
+            { targets: [5], className: 'text-center' }
+        ]
+    });
+}
+
 
             // Összesített adatok feldolgozása
             function processCombinedData() {
@@ -617,35 +603,54 @@
 
             // Összesített adatok létrehozása
             function createCombinedData() {
-                const companies = {};
-                let totalAmount = 0;
-                let totalDonors = 0;
-                let totalCompanies = 0;
+    const companies = {};
+    let totalAmount = 0;
+    let totalDonors = 0;
 
-                // Adatok összegyűjtése évekből
-                [data2023, data2024, data2025].forEach((yearData, index) => {
-                    if (!yearData || !yearData.adatok) return;
-                    
-                    const year = [2023, 2024, 2025][index];
-                    
-                    yearData.adatok.forEach(item => {
-                        const key = item.nev; // Cégnév alapján csoportosítunk
-                        
-                        if (!companies[key]) {
-                            companies[key] = {
-                                nev: item.nev,
-                                adoszam: item.adoszam,
-                                szekhely: item.szekhely || '',
-                                2023: { osszeg: 0, fo: 0 },
-                                2024: { osszeg: 0, fo: 0 },
-                                2025: { osszeg: 0, fo: 0 }
-                            };
-                        }
-                        
-                        companies[key][year].osszeg += item.felajanlottOsszeg;
-                        companies[key][year].fo += item.felajanlokSzama;
-                    });
-                });
+    [data2023, data2024, data2025].forEach((yearData, index) => {
+        if (!yearData || !yearData.adatok) return;
+
+        const year = [2023, 2024, 2025][index];
+        yearData.adatok.forEach(item => {
+            const key = item.a; // adószám alapján azonosítjuk
+
+            if (!companies[key]) {
+                companies[key] = {
+                    nev: item.n,
+                    adoszam: item.a,
+                    szekhely: item.c || '',
+                    2023: { osszeg: 0, fo: 0 },
+                    2024: { osszeg: 0, fo: 0 },
+                    2025: { osszeg: 0, fo: 0 }
+                };
+            }
+
+            companies[key][year].osszeg += item.o;
+            companies[key][year].fo += item.f;
+        });
+    });
+
+    Object.values(companies).forEach(company => {
+        const companyTotal = company[2023].osszeg + company[2024].osszeg + company[2025].osszeg;
+        const companyDonors = company[2023].fo + company[2024].fo + company[2025].fo;
+
+        company.osszesOsszeg = companyTotal;
+        company.osszesFo = companyDonors;
+        company.atlagPerFo = companyDonors > 0 ? Math.round(companyTotal / companyDonors) : 0;
+
+        totalAmount += companyTotal;
+        totalDonors += companyDonors;
+    });
+
+    return {
+        companies: Object.values(companies),
+        totalCompanies: Object.keys(companies).length,
+        totalAmount,
+        totalDonors,
+        avgAmount: totalDonors > 0 ? Math.round(totalAmount / totalDonors) : 0
+    };
+}
+
 
                 // Összesítések számítása
                 Object.values(companies).forEach(company => {
@@ -681,50 +686,40 @@
 
             // Összesített táblázat inicializálása
             function initializeCombinedTable(companies) {
-                const tableData = companies.map(company => {
-                    const adoszam = `${company.adoszam.resz1}-${company.adoszam.resz2}-${company.adoszam.resz3}`;
-                    
-                    return [
-                        company.nev,
-                        `<span class="adoszam-display">${adoszam}</span>`,
-                        company[2023].osszeg.toLocaleString('hu-HU') + ' Ft',
-                        company[2023].fo + ' fő',
-                        company[2024].osszeg.toLocaleString('hu-HU') + ' Ft',
-                        company[2024].fo + ' fő',
-                        company[2025].osszeg.toLocaleString('hu-HU') + ' Ft',
-                        company[2025].fo + ' fő',
-                        company.osszesOsszeg.toLocaleString('hu-HU') + ' Ft',
-                        company.osszesFo + ' fő',
-                        company.atlagPerFo.toLocaleString('hu-HU') + ' Ft'
-                    ];
-                });
+    const tableData = companies.map(company => {
+        return [
+            company.nev,
+            `<span class="adoszam-display">${company.adoszam}</span>`,
+            company[2023].osszeg.toLocaleString('hu-HU') + ' Ft',
+            company[2023].fo + ' fő',
+            company[2024].osszeg.toLocaleString('hu-HU') + ' Ft',
+            company[2024].fo + ' fő',
+            company[2025].osszeg.toLocaleString('hu-HU') + ' Ft',
+            company[2025].fo + ' fő',
+            company.osszesOsszeg.toLocaleString('hu-HU') + ' Ft',
+            company.osszesFo + ' fő',
+            company.atlagPerFo.toLocaleString('hu-HU') + ' Ft'
+        ];
+    });
 
-                if (dataTables['combinedTable']) {
-                    dataTables['combinedTable'].destroy();
-                }
+    if (dataTables['combinedTable']) {
+        dataTables['combinedTable'].destroy();
+    }
 
-                dataTables['combinedTable'] = $('#combinedTable').DataTable({
-                    data: tableData,
-                    language: {
-                        url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/hu.json'
-                    },
-                    responsive: true,
-                    pageLength: 25,
-                    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Összes"]],
-                    order: [[8, 'desc']], // Összes felajánlás szerint rendezés
-                    columnDefs: [
-                        {
-                            targets: [2, 4, 6, 8, 10], // Összeg oszlopok
-                            className: 'text-end'
-                        },
-                        {
-                            targets: [3, 5, 7, 9], // Fő oszlopok
-                            className: 'text-center'
-                        }
-                    ],
-                    scrollX: true
-                });
-            }
+    dataTables['combinedTable'] = $('#combinedTable').DataTable({
+        data: tableData,
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/hu.json' },
+        responsive: true,
+        pageLength: 25,
+        order: [[8, 'desc']],
+        columnDefs: [
+            { targets: [2, 4, 6, 8, 10], className: 'text-end' },
+            { targets: [3, 5, 7, 9], className: 'text-center' }
+        ],
+        scrollX: true
+    });
+}
+
 
             // Évenkénti CSV export
             function exportToCSV(year) {
