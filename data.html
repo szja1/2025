@@ -1,146 +1,817 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Felajánlások Adatmegjelenítő 2023-2025</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Felajánlások Dashboard 2023-2025</title>
+    
+    <!-- Modern CSS Framework -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --dark-color: #1f2937;
+            --light-color: #f8fafc;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
 
-  <!-- Bootstrap 5.3 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-  <!-- DataTables CSS -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
 
-  <style>
-    .stats-card { border-left: 4px solid #0d6efd; }
-    .adoszam-display { font-family: monospace; font-weight: bold; }
-    .table-container { box-shadow: 0 0 20px rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; }
-    .nav-pills .nav-link.active { background-color: #0d6efd; }
-    .year-badge { font-size: 0.8em; margin-left: 8px; }
-  </style>
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            margin: 2rem auto;
+            max-width: 95%;
+        }
+
+        .header-section {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><radialGradient id="a" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="white" stop-opacity=".1"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient></defs><rect width="100" height="20" fill="url(%23a)"/></svg>');
+            opacity: 0.1;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .load-btn {
+            background: linear-gradient(135deg, var(--success-color), #10b981);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .load-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(5, 150, 105, 0.3);
+        }
+
+        .load-btn:disabled {
+            background: #9ca3af;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stats-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 0.5rem 0;
+        }
+
+        .stats-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-icon {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .nav-pills-custom {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 0.5rem;
+        }
+
+        .nav-pills-custom .nav-link {
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: #64748b;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 0 0.25rem;
+        }
+
+        .nav-pills-custom .nav-link.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-top: 1.5rem;
+        }
+
+        .table-responsive {
+            border-radius: var(--border-radius);
+        }
+
+        .table th {
+            background: #f8fafc;
+            border: none;
+            font-weight: 600;
+            color: var(--dark-color);
+            padding: 1rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .table td {
+            border: none;
+            padding: 0.75rem;
+            vertical-align: middle;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+            transform: scale(1.001);
+        }
+
+        .adoszam-display {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            background: #f1f5f9;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .amount-display {
+            font-weight: 600;
+            color: var(--success-color);
+        }
+
+        .count-display {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .preloader-content {
+            text-align: center;
+            color: white;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar-custom {
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-loaded { background: var(--success-color); }
+        .status-loading { background: var(--warning-color); animation: pulse 1.5s infinite; }
+        .status-error { background: var(--danger-color); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                margin: 1rem;
+                max-width: calc(100% - 2rem);
+            }
+            
+            .header-section {
+                padding: 1.5rem;
+            }
+            
+            .stats-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container-fluid py-4">
-  <h1 class="mb-4"><i class="bi bi-bar-chart me-2"></i>Felajánlások 2023–2025</h1>
-
-  <!-- Tabs -->
-  <ul class="nav nav-pills mb-3" id="yearTabs" role="tablist">
-    <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#combined">Összesítő</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#year2025">2025</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#year2024">2024</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#year2023">2023</button></li>
-  </ul>
-
-  <div class="tab-content">
-    <div class="tab-pane fade show active" id="combined">
-      <div id="combinedStats" class="row mb-3"></div>
-      <table id="combinedTable" class="table table-striped table-hover w-100"></table>
+    <!-- Preloader -->
+    <div id="preloader" class="preloader" style="display: none;">
+        <div class="preloader-content">
+            <div class="spinner"></div>
+            <h5 id="preloaderText">Adatok betöltése...</h5>
+            <div class="progress-bar-custom">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+        </div>
     </div>
-    <div class="tab-pane fade" id="year2025"><div id="stats2025" class="row mb-3"></div><table id="table2025" class="table table-striped w-100"></table></div>
-    <div class="tab-pane fade" id="year2024"><div id="stats2024" class="row mb-3"></div><table id="table2024" class="table table-striped w-100"></table></div>
-    <div class="tab-pane fade" id="year2023"><div id="stats2023" class="row mb-3"></div><table id="table2023" class="table table-striped w-100"></table></div>
-  </div>
-</div>
 
-<!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <div class="container-fluid">
+        <div class="dashboard-container">
+            <!-- Header -->
+            <div class="header-section">
+                <div class="header-content">
+                    <h1 class="mb-2">
+                        <i class="bi bi-graph-up me-3"></i>
+                        Felajánlások Dashboard
+                    </h1>
+                    <p class="mb-0 opacity-75">2023-2025 adatok elemzése és megjelenítése</p>
+                </div>
+            </div>
 
-<script>
-$(async function() {
-  let datasets = {};
-  let years = [2023, 2024, 2025];
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="btn-group" role="group">
+                            <button id="load2023" class="btn load-btn me-2">
+                                <span class="status-indicator" id="status2023"></span>
+                                <i class="bi bi-download me-2"></i>2023 adatok
+                            </button>
+                            <button id="load2024" class="btn load-btn me-2">
+                                <span class="status-indicator" id="status2024"></span>
+                                <i class="bi bi-download me-2"></i>2024 adatok
+                            </button>
+                            <button id="load2025" class="btn load-btn">
+                                <span class="status-indicator" id="status2025"></span>
+                                <i class="bi bi-download me-2"></i>2025 adatok
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                        <button id="loadAll" class="btn btn-primary">
+                            <i class="bi bi-cloud-download me-2"></i>Összes betöltése
+                        </button>
+                        <button id="generateReports" class="btn btn-outline-primary ms-2" disabled>
+                            <i class="bi bi-file-earmark-bar-graph me-2"></i>Kimutatások
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-  // JSON betöltése
-  for (let y of years) {
-    try {
-      datasets[y] = await $.getJSON(`${y}.json`);
-    } catch {
-      datasets[y] = { adatok: [] };
-    }
-  }
+            <!-- Navigation -->
+            <div class="p-3">
+                <ul class="nav nav-pills nav-pills-custom justify-content-center" id="yearTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="combined-tab" data-bs-toggle="pill" data-bs-target="#combined" type="button">
+                            <i class="bi bi-pie-chart me-2"></i>Összesítő
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="year2025-tab" data-bs-toggle="pill" data-bs-target="#year2025" type="button">
+                            <i class="bi bi-calendar3 me-2"></i>2025
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="year2024-tab" data-bs-toggle="pill" data-bs-target="#year2024" type="button">
+                            <i class="bi bi-calendar2 me-2"></i>2024
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="year2023-tab" data-bs-toggle="pill" data-bs-target="#year2023" type="button">
+                            <i class="bi bi-calendar me-2"></i>2023
+                        </button>
+                    </li>
+                </ul>
+            </div>
 
-  // Egy év feldolgozása
-  function processYear(year) {
-    let adatok = datasets[year].adatok || [];
-    let totalO = _.sumBy(adatok, 'o');
-    let totalF = _.sumBy(adatok, 'f');
-    let statsHtml = `
-      <div class="col"><div class="card"><div class="card-body">Cégek: ${adatok.length}</div></div></div>
-      <div class="col"><div class="card"><div class="card-body">Összeg: ${totalO.toLocaleString('hu-HU')} Ft</div></div></div>
-      <div class="col"><div class="card"><div class="card-body">Felajánlók: ${totalF.toLocaleString('hu-HU')}</div></div></div>
-      <div class="col"><div class="card"><div class="card-body">Átlag/fő: ${(totalF>0?Math.round(totalO/totalF):0).toLocaleString('hu-HU')} Ft</div></div></div>`;
-    $(`#stats${year}`).html(statsHtml);
+            <!-- Tab Content -->
+            <div class="tab-content p-3">
+                <!-- Combined View -->
+                <div class="tab-pane fade show active" id="combined">
+                    <div id="combinedStats" class="row mb-4"></div>
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table id="combinedTable" class="table table-hover w-100">
+                                <thead>
+                                    <tr>
+                                        <th>Név</th>
+                                        <th>Adószám</th>
+                                        <th>2023 összeg</th>
+                                        <th>2023 fő</th>
+                                        <th>2024 összeg</th>
+                                        <th>2024 fő</th>
+                                        <th>2025 összeg</th>
+                                        <th>2025 fő</th>
+                                        <th>Összes összeg</th>
+                                        <th>Összes fő</th>
+                                        <th>Átlag/fő</th>
+                                        <th>Éves jövedelem/fő</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-    let tableData = adatok.map(d => [
-      d.i, `<span class="adoszam-display">${d.a}</span>`, d.n, d.c,
-      d.o.toLocaleString('hu-HU')+" Ft", d.f+" fő", d.f>0?Math.round(d.o/d.f).toLocaleString('hu-HU')+" Ft":"0 Ft"
-    ]);
-    $(`#table${year}`).DataTable({
-      data: tableData,
-      columns: [
-        { title:"Sorszám" }, { title:"Adószám" }, { title:"Név" },
-        { title:"Cím" }, { title:"Összeg" }, { title:"Fő" }, { title:"Átlag/fő" }
-      ],
-      pageLength: 25,
-      language: { url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/hu.json" }
-    });
-  }
+                <!-- Individual Year Views -->
+                <div class="tab-pane fade" id="year2025">
+                    <div id="stats2025" class="row mb-4"></div>
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table id="table2025" class="table table-hover w-100"></table>
+                        </div>
+                    </div>
+                </div>
 
-  years.forEach(processYear);
+                <div class="tab-pane fade" id="year2024">
+                    <div id="stats2024" class="row mb-4"></div>
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table id="table2024" class="table table-hover w-100"></table>
+                        </div>
+                    </div>
+                </div>
 
-  // Combined
-  let companies = {};
-  years.forEach(y => {
-    (datasets[y].adatok||[]).forEach(d => {
-      if (!companies[d.a]) companies[d.a] = { nev:d.n, a:d.a, c:d.c, [2023]:{o:0,f:0}, [2024]:{o:0,f:0}, [2025]:{o:0,f:0} };
-      companies[d.a][y].o += d.o;
-      companies[d.a][y].f += d.f;
-    });
-  });
+                <div class="tab-pane fade" id="year2023">
+                    <div id="stats2023" class="row mb-4"></div>
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table id="table2023" class="table table-hover w-100"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  let rows = Object.values(companies).map(c => {
-    let to = c[2023].o + c[2024].o + c[2025].o;
-    let tf = c[2023].f + c[2024].f + c[2025].f;
-    return [
-      c.nev, `<span class="adoszam-display">${c.a}</span>`,
-      c[2023].o.toLocaleString('hu-HU')+" Ft", c[2023].f+" fő",
-      c[2024].o.toLocaleString('hu-HU')+" Ft", c[2024].f+" fő",
-      c[2025].o.toLocaleString('hu-HU')+" Ft", c[2025].f+" fő",
-      to.toLocaleString('hu-HU')+" Ft", tf+" fő",
-      tf>0?Math.round(to/tf).toLocaleString('hu-HU')+" Ft":"0 Ft"
-    ];
-  });
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
 
-  let totalCompanies = rows.length;
-  let totalO = _.sumBy(Object.values(companies), c => c[2023].o+c[2024].o+c[2025].o);
-  let totalF = _.sumBy(Object.values(companies), c => c[2023].f+c[2024].f+c[2025].f);
-  let avg = totalF>0?Math.round(totalO/totalF):0;
-  $('#combinedStats').html(`
-    <div class="col"><div class="card"><div class="card-body">Cégek: ${totalCompanies}</div></div></div>
-    <div class="col"><div class="card"><div class="card-body">Összesen: ${totalO.toLocaleString('hu-HU')} Ft</div></div></div>
-    <div class="col"><div class="card"><div class="card-body">Felajánlók: ${totalF}</div></div></div>
-    <div class="col"><div class="card"><div class="card-body">Átlag/fő: ${avg.toLocaleString('hu-HU')} Ft</div></div></div>
-  `);
+    <script>
+        class DashboardManager {
+            constructor() {
+                this.datasets = {};
+                this.years = [2023, 2024, 2025];
+                this.loadedYears = new Set();
+                this.dataTables = {};
+                this.init();
+            }
 
-  $('#combinedTable').DataTable({
-    data: rows,
-    columns: [
-      { title:"Név" },{ title:"Adószám" },
-      { title:"2023 összeg" },{ title:"2023 fő" },
-      { title:"2024 összeg" },{ title:"2024 fő" },
-      { title:"2025 összeg" },{ title:"2025 fő" },
-      { title:"Összes összeg" },{ title:"Összes fő" },{ title:"Átlag/fő" }
-    ],
-    scrollX:true,
-    pageLength:25,
-    language:{ url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/hu.json" }
-  });
-});
-</script>
+            init() {
+                this.bindEvents();
+                this.updateUI();
+            }
+
+            bindEvents() {
+                // Individual year loading
+                this.years.forEach(year => {
+                    $(`#load${year}`).on('click', () => this.loadYear(year));
+                });
+
+                // Load all button
+                $('#loadAll').on('click', () => this.loadAllYears());
+
+                // Generate reports button
+                $('#generateReports').on('click', () => this.generateReports());
+            }
+
+            async loadYear(year, showPreloader = true) {
+                if (showPreloader) {
+                    this.showPreloader(`${year} adatok betöltése...`);
+                }
+
+                this.updateStatus(year, 'loading');
+                $(`#load${year}`).prop('disabled', true);
+
+                try {
+                    const response = await fetch(`${year}.json`);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    
+                    const data = await response.json();
+                    this.datasets[year] = data;
+                    this.loadedYears.add(year);
+                    
+                    this.updateStatus(year, 'loaded');
+                    this.processYearData(year);
+                    this.updateCombinedData();
+                    this.updateUI();
+                    
+                    if (showPreloader) {
+                        setTimeout(() => this.hidePreloader(), 500);
+                    }
+                    
+                } catch (error) {
+                    console.error(`Hiba ${year} betöltésekor:`, error);
+                    this.updateStatus(year, 'error');
+                    if (showPreloader) {
+                        this.hidePreloader();
+                    }
+                    this.showAlert(`Hiba történt a ${year} adatok betöltésekor!`, 'danger');
+                } finally {
+                    $(`#load${year}`).prop('disabled', false);
+                }
+            }
+
+            async loadAllYears() {
+                this.showPreloader('Összes adat betöltése...');
+                
+                const loadPromises = this.years.map(year => 
+                    this.loadYear(year, false)
+                );
+
+                try {
+                    await Promise.all(loadPromises);
+                    setTimeout(() => this.hidePreloader(), 500);
+                } catch (error) {
+                    this.hidePreloader();
+                }
+            }
+
+            updateStatus(year, status) {
+                const statusEl = $(`#status${year}`);
+                statusEl.removeClass('status-loaded status-loading status-error');
+                statusEl.addClass(`status-${status}`);
+            }
+
+            showPreloader(text, progress = 0) {
+                $('#preloaderText').text(text);
+                $('#progressFill').css('width', `${progress}%`);
+                $('#preloader').fadeIn(300);
+            }
+
+            hidePreloader() {
+                $('#preloader').fadeOut(300);
+            }
+
+            processYearData(year) {
+                const data = this.datasets[year];
+                if (!data || !data.adatok) return;
+
+                const adatok = data.adatok;
+                const totalO = _.sumBy(adatok, 'o');
+                const totalF = _.sumBy(adatok, 'f');
+                const avgPerPerson = totalF > 0 ? Math.round(totalO / totalF) : 0;
+
+                // Stats HTML
+                const statsHtml = `
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stats-card fade-in">
+                            <div class="stats-icon">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <div class="stats-label">Cégek száma</div>
+                            <div class="stats-value">${adatok.length.toLocaleString('hu-HU')}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stats-card fade-in">
+                            <div class="stats-icon">
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                            <div class="stats-label">Összes felajánlás</div>
+                            <div class="stats-value">${totalO.toLocaleString('hu-HU')} Ft</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stats-card fade-in">
+                            <div class="stats-icon">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <div class="stats-label">Összes felajánló</div>
+                            <div class="stats-value">${totalF.toLocaleString('hu-HU')}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stats-card fade-in">
+                            <div class="stats-icon">
+                                <i class="bi bi-calculator"></i>
+                            </div>
+                            <div class="stats-label">Átlag/fő</div>
+                            <div class="stats-value">${avgPerPerson.toLocaleString('hu-HU')} Ft</div>
+                        </div>
+                    </div>
+                `;
+
+                $('#combinedStats').html(combinedStatsHtml);
+
+                // Destroy existing combined DataTable if exists
+                if (this.dataTables.combined) {
+                    this.dataTables.combined.destroy();
+                }
+
+                // Create combined DataTable
+                this.dataTables.combined = $('#combinedTable').DataTable({
+                    data: rows,
+                    pageLength: 25,
+                    responsive: true,
+                    scrollX: true,
+                    language: {
+                        url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/hu.json"
+                    },
+                    order: [[8, 'desc']], // Sort by total amount descending
+                    columnDefs: [
+                        { targets: [2, 4, 6, 8, 10, 11], className: 'text-end' },
+                        { targets: [3, 5, 7, 9], className: 'text-center' }
+                    ]
+                });
+            }
+
+            updateUI() {
+                // Enable/disable generate reports button
+                $('#generateReports').prop('disabled', this.loadedYears.size === 0);
+                
+                // Update load all button
+                if (this.loadedYears.size === this.years.length) {
+                    $('#loadAll').html('<i class="bi bi-check-circle me-2"></i>Minden betöltve')
+                        .removeClass('btn-primary').addClass('btn-success');
+                }
+            }
+
+            generateReports() {
+                if (this.loadedYears.size === 0) {
+                    this.showAlert('Először töltsön be adatokat!', 'warning');
+                    return;
+                }
+
+                // Placeholder for future report generation functionality
+                this.showAlert('Kimutatások funkcionalitás hamarosan elérhető!', 'info');
+                
+                // Here you can add additional report generation logic
+                console.log('Available datasets:', this.datasets);
+                console.log('Loaded years:', Array.from(this.loadedYears));
+            }
+
+            showAlert(message, type = 'info') {
+                const alertHtml = `
+                    <div class="alert alert-${type} alert-dismissible fade show position-fixed" 
+                         style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+                        <i class="bi bi-info-circle me-2"></i>
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                
+                $('body').append(alertHtml);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    $('.alert').fadeOut(300, function() { $(this).remove(); });
+                }, 5000);
+            }
+
+            // Method to get processed data for external use
+            getProcessedData(year) {
+                return this.datasets[year];
+            }
+
+            // Method to get all loaded data
+            getAllData() {
+                return {
+                    datasets: this.datasets,
+                    loadedYears: Array.from(this.loadedYears)
+                };
+            }
+
+            // Method to calculate advanced statistics
+            calculateAdvancedStats(year) {
+                if (!this.datasets[year] || !this.datasets[year].adatok) return null;
+
+                const data = this.datasets[year].adatok;
+                const amounts = data.map(d => d.o);
+                const counts = data.map(d => d.f);
+                
+                // Calculate quartiles, median, etc.
+                const sortedAmounts = [...amounts].sort((a, b) => a - b);
+                const length = sortedAmounts.length;
+                
+                return {
+                    median: length % 2 === 0 ? 
+                        (sortedAmounts[length/2 - 1] + sortedAmounts[length/2]) / 2 : 
+                        sortedAmounts[Math.floor(length/2)],
+                    q1: sortedAmounts[Math.floor(length * 0.25)],
+                    q3: sortedAmounts[Math.floor(length * 0.75)],
+                    min: Math.min(...amounts),
+                    max: Math.max(...amounts),
+                    totalAmount: _.sum(amounts),
+                    totalCount: _.sum(counts),
+                    avgAmount: _.mean(amounts),
+                    companies: data.length
+                };
+            }
+
+            // Method to export data (for future use)
+            exportData(format = 'json') {
+                const exportData = {
+                    exportDate: new Date().toISOString(),
+                    loadedYears: Array.from(this.loadedYears),
+                    data: this.datasets
+                };
+
+                if (format === 'json') {
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], 
+                        { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `felajanlasok_export_${new Date().getFullYear()}-${new Date().getMonth()+1}-${new Date().getDate()}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
+            }
+        }
+
+        // Initialize dashboard when DOM is ready
+        $(document).ready(function() {
+            window.dashboard = new DashboardManager();
+            
+            // Add some additional UI enhancements
+            $('[data-bs-toggle="tooltip"]').tooltip();
+            
+            // Add keyboard shortcuts
+            $(document).keydown(function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.which) {
+                        case 49: // Ctrl+1 - Load 2023
+                            e.preventDefault();
+                            $('#load2023').click();
+                            break;
+                        case 50: // Ctrl+2 - Load 2024
+                            e.preventDefault();
+                            $('#load2024').click();
+                            break;
+                        case 51: // Ctrl+3 - Load 2025
+                            e.preventDefault();
+                            $('#load2025').click();
+                            break;
+                        case 65: // Ctrl+A - Load All
+                            e.preventDefault();
+                            $('#loadAll').click();
+                            break;
+                    }
+                }
+            });
+
+            // Add smooth scrolling for better UX
+            $('a[href*="#"]').on('click', function(e) {
+                e.preventDefault();
+                $('html, body').animate({
+                    scrollTop: $($(this).attr('href')).offset().top - 100
+                }, 500);
+            });
+
+            // Add loading states for better feedback
+            $('.load-btn').on('click', function() {
+                const btn = $(this);
+                const originalText = btn.html();
+                btn.html('<i class="bi bi-hourglass-split me-2"></i>Betöltés...')
+                   .prop('disabled', true);
+                
+                setTimeout(() => {
+                    btn.html(originalText).prop('disabled', false);
+                }, 2000);
+            });
+        });
+
+        // Add some utility functions for potential future features
+        window.dashboardUtils = {
+            formatCurrency: (amount) => {
+                return new Intl.NumberFormat('hu-HU', {
+                    style: 'currency',
+                    currency: 'HUF',
+                    minimumFractionDigits: 0
+                }).format(amount);
+            },
+            
+            formatNumber: (number) => {
+                return new Intl.NumberFormat('hu-HU').format(number);
+            },
+            
+            calculateYearlyIncome: (amount, people) => {
+                if (people === 0) return 0;
+                return Math.round((amount / people) * 100 / 0.15);
+            },
+            
+            generateRandomColor: () => {
+                const colors = [
+                    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
+                    '#8b5cf6', '#06b6d4', '#84cc16', '#f97316'
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+        };
+    </script>
 </body>
 </html>
