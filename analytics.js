@@ -4,7 +4,9 @@ window.analyticsManager = {
     top100Data: [],
     locationsData: [],
     specialData: [],
-    singleDonorData: [],
+    
+    // Kiemelt cégek adószámai
+    specialTaxNumbers: ["19347215141", "19286031242", "18219612143"],
 
     processTopRevenue: function(datasets) {
         if (!datasets[2023] || !datasets[2024] || !datasets[2025]) return [];
@@ -50,37 +52,40 @@ window.analyticsManager = {
                 const change2324 = c[2023].o > 0 ? (c[2024].o - c[2023].o) / c[2023].o : (c[2024].o > 0 ? 1 : 0);
                 const change2425 = c[2024].o > 0 ? (c[2025].o - c[2024].o) / c[2024].o : (c[2025].o > 0 ? 1 : 0);
                 
-                let monthlyIncome2025 = 0;
-                if (c[2025].f > 0) {
-                    const avgOffer = c[2025].o / c[2025].f;
-                    monthlyIncome2025 = (avgOffer / 0.0015) / 12;
-                }
+                // Átlagos éves bevétel számítás minden évre
+                const avgYearlyRevenue2023 = c[2023].f > 0 ? (c[2023].o / c[2023].f) / 0.0015 : 0;
+                const avgYearlyRevenue2024 = c[2024].f > 0 ? (c[2024].o / c[2024].f) / 0.0015 : 0;
+                const avgYearlyRevenue2025 = c[2025].f > 0 ? (c[2025].o / c[2025].f) / 0.0015 : 0;
                 
                 const totalSum = c[2023].o + c[2024].o + c[2025].o;
                 const totalCnt = c[2023].f + c[2024].f + c[2025].f;
-                let avgMonthlyIncome = 0;
+                let totalAvgYearlyRevenue = 0;
                 if (totalCnt > 0) {
-                    const avgOffer = totalSum / totalCnt;
-                    avgMonthlyIncome = (avgOffer / 0.0015) / 12;
+                    totalAvgYearlyRevenue = (totalSum / totalCnt) / 0.0015;
                 }
 
                 result.push([
                     c.name,
                     c[2023].o,
                     c[2023].f,
+                    avgYearlyRevenue2023,
                     c[2024].o,
                     c[2024].f,
                     change2324,
+                    avgYearlyRevenue2024,
                     c[2025].o,
                     c[2025].f,
                     change2425,
-                    monthlyIncome2025,
-                    avgMonthlyIncome,
-                    totalSum
+                    avgYearlyRevenue2025,
+                    totalSum,
+                    totalAvgYearlyRevenue
                 ]);
             }
         });
 
+        // Sort by total sum
+        result.sort((a, b) => b[12] - a[12]);
+        
         this.topRevenueData = result;
         return result;
     },
@@ -126,30 +131,66 @@ window.analyticsManager = {
     },
 
     processLocations: function(datasets) {
-        const locations = {};
+        const locationCompanies = {};
+        const companyTotals = {};
         
         [2023, 2024, 2025].forEach(year => {
             if (datasets[year] && datasets[year].adatok) {
                 datasets[year].adatok.forEach(d => {
                     const location = d.c || 'Ismeretlen';
-                    if (!locations[location]) {
-                        locations[location] = new Set();
+                    const companyName = d.n;
+                    
+                    if (!locationCompanies[location]) {
+                        locationCompanies[location] = {};
                     }
-                    locations[location].add(d.n);
+                    
+                    if (!locationCompanies[location][companyName]) {
+                        locationCompanies[location][companyName] = {
+                            name: companyName,
+                            location: location,
+                            2023: 0,
+                            2024: 0,
+                            2025: 0
+                        };
+                    }
+                    
+                    locationCompanies[location][companyName][year] += d.o;
+                    
+                    // Company totals for sorting
+                    if (!companyTotals[companyName]) {
+                        companyTotals[companyName] = 0;
+                    }
+                    companyTotals[companyName] += d.o;
                 });
             }
         });
 
-        // Filter locations with at least 2 companies
+        // Filter locations with at least 2 companies and prepare data
         const result = [];
-        Object.entries(locations).forEach(([location, companies]) => {
-            if (companies.size >= 2) {
-                result.push([location, companies.size, Array.from(companies).join(', ')]);
+        Object.entries(locationCompanies).forEach(([location, companies]) => {
+            const companyList = Object.values(companies);
+            if (companyList.length >= 2) {
+                const locationTotal = companyList.reduce((sum, company) => 
+                    sum + company[2023] + company[2024] + company[2025], 0);
+                
+                // Sort companies by total amount
+                companyList.sort((a, b) => {
+                    const totalA = a[2023] + a[2024] + a[2025];
+                    const totalB = b[2023] + b[2024] + b[2025];
+                    return totalB - totalA;
+                });
+                
+                result.push({
+                    location: location,
+                    total: locationTotal,
+                    companyCount: companyList.length,
+                    companies: companyList
+                });
             }
         });
 
-        // Sort by company count
-        result.sort((a, b) => b[1] - a[1]);
+        // Sort by total amount
+        result.sort((a, b) => b.total - a.total);
         
         this.locationsData = result;
         return result;
@@ -161,94 +202,42 @@ window.analyticsManager = {
         [2023, 2024, 2025].forEach(year => {
             if (datasets[year] && datasets[year].adatok) {
                 datasets[year].adatok.forEach(d => {
-                    if (!companies[d.n]) {
-                        companies[d.n] = {
-                            name: d.n,
-                            2023: { o: 0, f: 0 },
-                            2024: { o: 0, f: 0 },
-                            2025: { o: 0, f: 0 }
-                        };
+                    const cleanTaxNumber = d.a.toString().replace(/\D/g, '');
+                    if (this.specialTaxNumbers.includes(cleanTaxNumber)) {
+                        if (!companies[d.n]) {
+                            companies[d.n] = {
+                                name: d.n,
+                                taxNumber: d.a,
+                                address: d.c,
+                                2023: { o: 0, f: 0 },
+                                2024: { o: 0, f: 0 },
+                                2025: { o: 0, f: 0 }
+                            };
+                        }
+                        companies[d.n][year].o += d.o;
+                        companies[d.n][year].f += d.f;
                     }
-                    companies[d.n][year].o += d.o;
-                    companies[d.n][year].f += d.f;
                 });
             }
         });
 
-        // Filter companies with <5 employees and >1M revenue in any year
-        const result = [];
-        Object.values(companies).forEach(c => {
-            let qualifies = false;
-            [2023, 2024, 2025].forEach(year => {
-                if (c[year].f > 0 && c[year].f < 5 && c[year].o > 1000000) {
-                    qualifies = true;
-                }
-            });
-
-            if (qualifies) {
-                const totalSum = c[2023].o + c[2024].o + c[2025].o;
-                result.push([
-                    c.name,
-                    c[2023].o,
-                    c[2023].f,
-                    c[2024].o,
-                    c[2024].f,
-                    c[2025].o,
-                    c[2025].f,
-                    totalSum
-                ]);
-            }
-        });
+        const result = Object.values(companies).map(c => [
+            c.name,
+            c.taxNumber,
+            c.address,
+            c[2023].o,
+            c[2023].f,
+            c[2024].o,
+            c[2024].f,
+            c[2025].o,
+            c[2025].f,
+            c[2023].o + c[2024].o + c[2025].o // total
+        ]);
 
         // Sort by total sum
-        result.sort((a, b) => b[7] - a[7]);
+        result.sort((a, b) => b[9] - a[9]);
         
         this.specialData = result;
-        return result;
-    },
-
-    processSingleDonor: function(datasets) {
-        if (!datasets[2025]) return [];
-
-        const companies = {};
-        
-        [2023, 2024, 2025].forEach(year => {
-            if (datasets[year] && datasets[year].adatok) {
-                datasets[year].adatok.forEach(d => {
-                    if (!companies[d.n]) {
-                        companies[d.n] = {
-                            name: d.n,
-                            2023: { o: 0, f: 0 },
-                            2024: { o: 0, f: 0 },
-                            2025: { o: 0, f: 0 }
-                        };
-                    }
-                    companies[d.n][year].o += d.o;
-                    companies[d.n][year].f += d.f;
-                });
-            }
-        });
-
-        // Filter companies with exactly 1 donor in 2025 and amount > 50000
-        const result = [];
-        Object.values(companies).forEach(c => {
-            if (c[2025].f === 1 && c[2025].o > 50000) {
-                result.push([
-                    c.name,
-                    c[2023].o,
-                    c[2023].f,
-                    c[2024].o,
-                    c[2024].f,
-                    c[2025].o,
-                    c[2025].f
-                ]);
-            }
-        });
-
-        // Sort by 2025 amount
-        result.sort((a, b) => b[5] - a[5]);
-        
-        this.singleDonorData = result;
         return result;
     },
 
@@ -257,13 +246,11 @@ window.analyticsManager = {
         this.processTop100(datasets);
         this.processLocations(datasets);
         this.processSpecial(datasets);
-        this.processSingleDonor(datasets);
 
         this.updateTopRevenueTable();
         this.updateTop100Table();
-        this.updateLocationsTable();
+        this.updateLocationsView();
         this.updateSpecialTable();
-        this.updateSingleDonorTable();
         this.updateCharts();
     },
 
@@ -276,15 +263,17 @@ window.analyticsManager = {
             row[0], // name
             window.dashboardUtils.formatHungarianNumber(row[1]), // 2023 sum
             row[2], // 2023 count
-            window.dashboardUtils.formatHungarianNumber(row[3]), // 2024 sum
-            row[4], // 2024 count
-            this.formatPercentChange(row[5]), // 2024-2023 change
-            window.dashboardUtils.formatHungarianNumber(row[6]), // 2025 sum
-            row[7], // 2025 count
-            this.formatPercentChange(row[8]), // 2025-2024 change
-            window.dashboardUtils.formatHungarianNumber(Math.round(row[9])), // 2025 monthly income
-            window.dashboardUtils.formatHungarianNumber(Math.round(row[10])), // avg monthly income
-            window.dashboardUtils.formatHungarianNumber(row[11]) // 3 year total
+            window.dashboardUtils.formatHungarianNumber(Math.round(row[3])), // 2023 avg yearly revenue
+            window.dashboardUtils.formatHungarianNumber(row[4]), // 2024 sum
+            row[5], // 2024 count
+            this.formatPercentChange(row[6]), // 2024-2023 change
+            window.dashboardUtils.formatHungarianNumber(Math.round(row[7])), // 2024 avg yearly revenue
+            window.dashboardUtils.formatHungarianNumber(row[8]), // 2025 sum
+            row[9], // 2025 count
+            this.formatPercentChange(row[10]), // 2025-2024 change
+            window.dashboardUtils.formatHungarianNumber(Math.round(row[11])), // 2025 avg yearly revenue
+            window.dashboardUtils.formatHungarianNumber(row[12]), // 3 year total
+            window.dashboardUtils.formatHungarianNumber(Math.round(row[13])) // total avg yearly revenue
         ]);
 
         $('#topRevenueTable').DataTable({
@@ -294,17 +283,20 @@ window.analyticsManager = {
                 { title: "Cégnév" },
                 { title: "2023 összeg (Ft)" },
                 { title: "2023 fő" },
+                { title: "2023 átl. éves bevétel/fő" },
                 { title: "2024 összeg (Ft)" },
                 { title: "2024 fő" },
                 { title: "2024-2023 változás" },
+                { title: "2024 átl. éves bevétel/fő" },
                 { title: "2025 összeg (Ft)" },
                 { title: "2025 fő" },
                 { title: "2025-2024 változás" },
-                { title: "2025 havi jöv./fő (Ft)" },
-                { title: "Átl. havi jöv./fő (Ft)" },
-                { title: "3 év összesen (Ft)" }
+                { title: "2025 átl. éves bevétel/fő" },
+                { title: "3 év összesen (Ft)" },
+                { title: "Össz. átl. éves bevétel/fő" }
             ],
-            order: [[11, 'desc']]
+            order: [[12, 'desc']],
+            scrollX: true
         });
     },
 
@@ -339,27 +331,52 @@ window.analyticsManager = {
         });
     },
 
-    updateLocationsTable: function() {
-        if ($('#locationsTable').hasClass('dataTable')) {
-            $('#locationsTable').DataTable().destroy();
-        }
-
-        const tableData = this.locationsData.map(row => [
-            row[0], // location
-            row[1], // company count
-            row[2]  // company list
-        ]);
-
-        $('#locationsTable').DataTable({
-            ...window.dashboardUtils.getDataTableConfig(),
-            data: tableData,
-            columns: [
-                { title: "Székhely" },
-                { title: "Cégek száma (db)" },
-                { title: "Cégek listája" }
-            ],
-            order: [[1, 'desc']]
+    updateLocationsView: function() {
+        let html = '';
+        
+        this.locationsData.forEach(locationData => {
+            html += `
+                <div class="location-group">
+                    <div class="location-header">
+                        ${locationData.location}
+                        <span class="location-total">
+                            ${locationData.companyCount} cég • 
+                            ${window.dashboardUtils.formatHungarianNumber(locationData.total)} Ft
+                        </span>
+                    </div>
+            `;
+            
+            locationData.companies.forEach(company => {
+                const total = company[2023] + company[2024] + company[2025];
+                html += `
+                    <div class="company-item">
+                        <div class="company-name">${company.name}</div>
+                        <div class="company-amounts">
+                            <div class="amount-year">
+                                <div class="amount-label">2023</div>
+                                <div class="amount-value">${window.dashboardUtils.formatHungarianNumber(company[2023])}</div>
+                            </div>
+                            <div class="amount-year">
+                                <div class="amount-label">2024</div>
+                                <div class="amount-value">${window.dashboardUtils.formatHungarianNumber(company[2024])}</div>
+                            </div>
+                            <div class="amount-year">
+                                <div class="amount-label">2025</div>
+                                <div class="amount-value">${window.dashboardUtils.formatHungarianNumber(company[2025])}</div>
+                            </div>
+                            <div class="amount-year">
+                                <div class="amount-label">Összesen</div>
+                                <div class="amount-value"><strong>${window.dashboardUtils.formatHungarianNumber(total)}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
         });
+        
+        $('#locationsContent').html(html);
     },
 
     updateSpecialTable: function() {
@@ -369,13 +386,15 @@ window.analyticsManager = {
 
         const tableData = this.specialData.map(row => [
             row[0], // name
-            window.dashboardUtils.formatHungarianNumber(row[1]), // 2023 sum
-            row[2], // 2023 count
-            window.dashboardUtils.formatHungarianNumber(row[3]), // 2024 sum
-            row[4], // 2024 count
-            window.dashboardUtils.formatHungarianNumber(row[5]), // 2025 sum
-            row[6], // 2025 count
-            window.dashboardUtils.formatHungarianNumber(row[7]) // total
+            window.dashboardUtils.formatTaxNumber(row[1]), // tax number
+            row[2], // address
+            window.dashboardUtils.formatHungarianNumber(row[3]), // 2023 sum
+            row[4], // 2023 count
+            window.dashboardUtils.formatHungarianNumber(row[5]), // 2024 sum
+            row[6], // 2024 count
+            window.dashboardUtils.formatHungarianNumber(row[7]), // 2025 sum
+            row[8], // 2025 count
+            window.dashboardUtils.formatHungarianNumber(row[9]) // total
         ]);
 
         $('#specialTable').DataTable({
@@ -383,6 +402,8 @@ window.analyticsManager = {
             data: tableData,
             columns: [
                 { title: "Cégnév" },
+                { title: "Adószám" },
+                { title: "Cím" },
                 { title: "2023 összeg (Ft)" },
                 { title: "2023 fő" },
                 { title: "2024 összeg (Ft)" },
@@ -391,59 +412,98 @@ window.analyticsManager = {
                 { title: "2025 fő" },
                 { title: "3 év összesen (Ft)" }
             ],
-            order: [[7, 'desc']]
-        });
-    },
-
-    updateSingleDonorTable: function() {
-        if ($('#singleDonorTable').hasClass('dataTable')) {
-            $('#singleDonorTable').DataTable().destroy();
-        }
-
-        const tableData = this.singleDonorData.map(row => [
-            row[0], // name
-            window.dashboardUtils.formatHungarianNumber(row[1]), // 2023 sum
-            row[2], // 2023 count
-            window.dashboardUtils.formatHungarianNumber(row[3]), // 2024 sum
-            row[4], // 2024 count
-            window.dashboardUtils.formatHungarianNumber(row[5]), // 2025 sum
-            row[6]  // 2025 count
-        ]);
-
-        $('#singleDonorTable').DataTable({
-            ...window.dashboardUtils.getDataTableConfig(),
-            data: tableData,
-            columns: [
-                { title: "Cégnév" },
-                { title: "2023 összeg (Ft)" },
-                { title: "2023 fő" },
-                { title: "2024 összeg (Ft)" },
-                { title: "2024 fő" },
-                { title: "2025 összeg (Ft)" },
-                { title: "2025 fő" }
-            ],
-            order: [[5, 'desc']]
+            order: [[9, 'desc']]
         });
     },
 
     updateCharts: function() {
-        // Revenue change chart
-        const revenueCanvas = document.getElementById('revenueChangeChart');
-        if (revenueCanvas && this.topRevenueData.length > 0) {
-            window.chartUtils.createRevenueChangeChart(revenueCanvas, this.topRevenueData);
+        // TOP 25 trend chart
+        const top25Canvas = document.getElementById('top25TrendChart');
+        if (top25Canvas && this.top100Data.length > 0) {
+            this.createTop25TrendChart(top25Canvas);
         }
+    },
 
-        // Top 100 chart
-        const top100Canvas = document.getElementById('top100Chart');
-        if (top100Canvas && this.top100Data.length > 0) {
-            window.chartUtils.createTop100Chart(top100Canvas, this.top100Data);
-        }
+    createTop25TrendChart: function(canvas) {
+        const ctx = canvas.getContext('2d');
+        
+        // Get top 25 companies
+        const top25 = this.top100Data.slice(0, 25);
+        
+        const datasets = top25.map((company, index) => {
+            const color = this.getChartColor(index);
+            return {
+                label: company[0].length > 15 ? company[0].substr(0, 15) + '...' : company[0],
+                data: [company[1], company[2], company[3]], // 2023, 2024, 2025
+                borderColor: color,
+                backgroundColor: color + '20',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4
+            };
+        });
 
-        // Locations chart
-        const locationsCanvas = document.getElementById('locationsChart');
-        if (locationsCanvas && this.locationsData.length > 0) {
-            window.chartUtils.createLocationsChart(locationsCanvas, this.locationsData);
-        }
+        return new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['2023', '2024', '2025'],
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false // Too many companies for legend
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${window.dashboardUtils.formatHungarianNumber(context.parsed.y)} Ft`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Összeg (Ft)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return window.dashboardUtils.formatHungarianNumber(value);
+                            }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Év'
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                }
+            }
+        });
+    },
+
+    getChartColor: function(index) {
+        const colors = [
+            '#6366f1', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b',
+            '#ef4444', '#8b5a2b', '#6b7280', '#ec4899', '#14b8a6',
+            '#f97316', '#84cc16', '#a855f7', '#3b82f6', '#22c55e',
+            '#eab308', '#dc2626', '#9333ea', '#0ea5e9', '#059669',
+            '#d97706', '#65a30d', '#7c3aed', '#2563eb', '#16a34a'
+        ];
+        return colors[index % colors.length];
     },
 
     formatPercentChange: function(value) {
