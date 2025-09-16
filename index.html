@@ -1,1 +1,24 @@
-teszt
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JSON adatok</title>
+</head>
+<body>
+
+    <h1>Adatok betöltése</h1>
+    <div id="tartalom"></div>
+
+    <script>
+        fetch('adatok.json')
+            .then(response => response.json())
+            .then(data => {
+                const tartalomDiv = document.getElementById('tartalom');
+                tartalomDiv.innerHTML = '<h2>Sikeresen betöltve!</h2>';
+                tartalomDiv.innerHTML += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                // Itt dolgozhatod fel az adatokat és építheted fel a táblázatot
+            })
+            .catch(error => console.error('Hiba történt:', error));
+    </script>
+
+</body>
+</html>
