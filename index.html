@@ -86,139 +86,109 @@
         <!-- Tab Content -->
         <div class="tab-content px-3 pb-3">
             <!-- Combined View -->
-            <div class="tab-pane fade show active" id="combined">
-                <div id="combinedStats" class="row"></div>
+            <div class="tab-content px-3 pb-3">
+    <!-- Combined View -->
+    <div class="tab-pane fade show active" id="combined">
+        <div id="combinedStats" class="row"></div>
+        <div class="table-container">
+            <div class="table-responsive">
+                <table id="combinedTable" class="table table-sm w-100">
+                    <thead>
+                        <tr>
+                            <th>Név</th>
+                            <th>2023 összeg</th>
+                            <th>2023 létszám</th>
+                            <th>2024 összeg</th>
+                            <th>2024 létszám</th>
+                            <th>2025 összeg</th>
+                            <th>2025 létszám</th>
+                            <th>Összes összeg</th>
+                            <th>Átlag/fő</th>
+                            <th>Éves jövedelem/fő</th>
+                            <th>Adószám</th>
+                            <th>Cím</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics View -->
+    <div class="tab-pane fade" id="analytics">
+        <div class="row">
+            <div class="col-12">
+                <div class="analytics-nav">
+                    <ul class="nav nav-pills nav-pills-custom" id="analyticsTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" id="top-revenue-tab" data-bs-toggle="pill" data-bs-target="#top-revenue" type="button">
+                                <i class="bi bi-trophy me-1"></i>TOP bevétel
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="top100-tab" data-bs-toggle="pill" data-bs-target="#top100" type="button">
+                                <i class="bi bi-list-ol me-1"></i>TOP 100
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="locations-tab" data-bs-toggle="pill" data-bs-target="#locations" type="button">
+                                <i class="bi bi-geo-alt me-1"></i>Székhelyek
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="special-tab" data-bs-toggle="pill" data-bs-target="#special" type="button">
+                                <i class="bi bi-star me-1"></i>Kiemelt
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content mt-3">
+            <!-- TOP bevétel 3 év -->
+            <div class="tab-pane fade show active" id="top-revenue">
                 <div class="table-container">
+                    <h6><i class="bi bi-trophy text-warning me-2"></i>TOP bevételű cégek (3 év)</h6>
                     <div class="table-responsive">
-                        <table id="combinedTable" class="table table-sm w-100">
-                            <thead>
-                                <tr>
-                                    <th>Név</th>
-                                    <th>2023 összeg</th>
-                                    <th>2023 létszám</th>
-                                    <th>2024 összeg</th>
-                                    <th>2024 létszám</th>
-                                    <th>2025 összeg</th>
-                                    <th>2025 létszám</th>
-                                    <th>Összes összeg</th>
-                                    <th>Összes létszám</th>
-                                    <th>Átlag/fő</th>
-                                    <th>Éves jövedelem/fő</th>
-                                    <th>Adószám</th>
-                                    <th>Cím</th>
-                                </tr>
-                            </thead>
-                        </table>
+                        <table id="topRevenueTable" class="table table-sm w-100"></table>
                     </div>
                 </div>
             </div>
 
-            <!-- Analytics View -->
-            <div class="tab-pane fade" id="analytics">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="analytics-nav">
-                            <ul class="nav nav-pills nav-pills-custom" id="analyticsTabs" role="tablist">
-                                <li class="nav-item">
-                                    <button class="nav-link active" id="top-revenue-tab" data-bs-toggle="pill" data-bs-target="#top-revenue" type="button">
-                                        <i class="bi bi-trophy me-1"></i>TOP bevétel
-                                    </button>
-                                </li>
-                                <li class="nav-item">
-                                    <button class="nav-link" id="top100-tab" data-bs-toggle="pill" data-bs-target="#top100" type="button">
-                                        <i class="bi bi-list-ol me-1"></i>TOP 100
-                                    </button>
-                                </li>
-                                <li class="nav-item">
-                                    <button class="nav-link" id="locations-tab" data-bs-toggle="pill" data-bs-target="#locations" type="button">
-                                        <i class="bi bi-geo-alt me-1"></i>Székhelyek
-                                    </button>
-                                </li>
-                                <li class="nav-item">
-                                    <button class="nav-link" id="special-tab" data-bs-toggle="pill" data-bs-target="#special" type="button">
-                                        <i class="bi bi-star me-1"></i>Kiemelt
-                                    </button>
-                                </li>
-                                <li class="nav-item">
-                                    <button class="nav-link" id="single-donor-tab" data-bs-toggle="pill" data-bs-target="#single-donor" type="button">
-                                        <i class="bi bi-person me-1"></i>1 felajánló
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
+            <!-- TOP 100 -->
+            <div class="tab-pane fade" id="top100">
+                <div class="chart-container">
+                    <h6><i class="bi bi-graph-up me-2"></i>TOP 25 cég bevétel trendje</h6>
+                    <canvas id="top25TrendChart"></canvas>
+                </div>
+                <div class="table-container">
+                    <h6><i class="bi bi-list-ol text-primary me-2"></i>TOP 100 cég (2025 alapján)</h6>
+                    <div class="table-responsive">
+                        <table id="top100Table" class="table table-sm w-100"></table>
                     </div>
                 </div>
+            </div>
 
-                <div class="tab-content mt-3">
-                    <!-- TOP bevétel 3 év -->
-                    <div class="tab-pane fade show active" id="top-revenue">
-                        <div class="row">
-                            <div class="col-lg-8">
-                                <div class="table-container">
-                                    <h6 class="mb-3"><i class="bi bi-trophy text-warning me-2"></i>TOP bevételű cégek (3 év)</h6>
-                                    <div class="table-responsive">
-                                        <table id="topRevenueTable" class="table table-sm w-100"></table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4">
-                                <div class="chart-container">
-                                    <h6 class="mb-3"><i class="bi bi-bar-chart me-2"></i>Bevétel változás</h6>
-                                    <canvas id="revenueChangeChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Székhelyek -->
+            <div class="tab-pane fade" id="locations">
+                <div class="table-container">
+                    <h6><i class="bi bi-geo-alt text-success me-2"></i>Székhelyek szerint</h6>
+                    <div id="locationsContent"></div>
+                </div>
+            </div>
 
-                    <!-- TOP 100 -->
-                    <div class="tab-pane fade" id="top100">
-                        <div class="row">
-                            <div class="col-lg-8">
-                                <div class="table-container">
-                                    <h6 class="mb-3"><i class="bi bi-list-ol text-primary me-2"></i>TOP 100 cég (2025 alapján)</h6>
-                                    <div class="table-responsive">
-                                        <table id="top100Table" class="table table-sm w-100"></table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4">
-                                <div class="chart-container">
-                                    <h6 class="mb-3"><i class="bi bi-pie-chart me-2"></i>Bevétel megoszlás</h6>
-                                    <canvas id="top100Chart"></canvas>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Kiemelt -->
+            <div class="tab-pane fade" id="special">
+                <div class="table-container">
+                    <h6><i class="bi bi-star text-warning me-2"></i>Kiemelt cégek</h6>
+                    <div class="table-responsive">
+                        <table id="specialTable" class="table table-sm w-100"></table>
                     </div>
-
-                    <!-- Székhelyek -->
-                    <div class="tab-pane fade" id="locations">
-                        <div class="row">
-                            <div class="col-lg-8">
-                                <div class="table-container">
-                                    <h6 class="mb-3"><i class="bi bi-geo-alt text-success me-2"></i>Székhelyek szerint</h6>
-                                    <div class="table-responsive">
-                                        <table id="locationsTable" class="table table-sm w-100"></table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4">
-                                <div class="chart-container">
-                                    <h6 class="mb-3"><i class="bi bi-map me-2"></i>Cégek megoszlása</h6>
-                                    <canvas id="locationsChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Kiemelt -->
-                    <div class="tab-pane fade" id="special">
-                        <div class="table-container">
-                            <h6 class="mb-3"><i class="bi bi-star text-warning me-2"></i>Kiemelt cégek (kevés fő, magas összeg)</h6>
-                            <div class="table-responsive">
-                                <table id="specialTable" class="table table-sm w-100"></table>
-                            </div>
-                        </div>
-                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
                     <!-- 1 felajánló -->
                     <div class="tab-pane fade" id="single-donor">
