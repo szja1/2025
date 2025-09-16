@@ -1,23 +1,96 @@
 <!DOCTYPE html>
-<html>
+<html lang="hu">
 <head>
-    <title>JSON adatok</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON adatok táblázatban</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        h1 {
+            color: #333;
+        }
+    </style>
 </head>
 <body>
 
-    <h1>Adatok betöltése</h1>
-    <div id="tartalom"></div>
+    <h1>Adatok a táblázatban</h1>
+    <div id="table-container"></div>
 
     <script>
+        // A 'fetch' metódus lekéri az adatokat az adatok.json fájlból.
         fetch('adatok.json')
-            .then(response => response.json())
-            .then(data => {
-                const tartalomDiv = document.getElementById('tartalom');
-                tartalomDiv.innerHTML = '<h2>Sikeresen betöltve!</h2>';
-                tartalomDiv.innerHTML += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-                // Itt dolgozhatod fel az adatokat és építheted fel a táblázatot
+            .then(response => {
+                // Ellenőrizzük, hogy a kérés sikeres volt-e.
+                if (!response.ok) {
+                    throw new Error(`HTTP hiba! Státusz: ${response.status}`);
+                }
+                // Az adatok feldolgozása JSON formátumban.
+                return response.json();
             })
-            .catch(error => console.error('Hiba történt:', error));
+            .then(data => {
+                // Meghívjuk a függvényt, ami létrehozza a táblázatot.
+                createTable(data);
+            })
+            .catch(error => {
+                // Hibakezelés, ha a fájl nem található vagy a fetch sikertelen.
+                console.error('Hiba történt a JSON fájl betöltésekor:', error);
+                document.getElementById('table-container').innerHTML = `<p>Hiba történt az adatok betöltésekor: ${error.message}</p>`;
+            });
+
+        // Ez a függvény létrehozza a HTML táblázatot a JSON adatokból.
+        function createTable(data) {
+            if (data.length === 0) {
+                document.getElementById('table-container').innerHTML = '<p>Nincsenek adatok a JSON fájlban.</p>';
+                return;
+            }
+
+            // Létrehozzuk a HTML táblázat elemet.
+            const table = document.createElement('table');
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
+
+            // --- Fejléc létrehozása (a JSON objektum kulcsai alapján) ---
+            const headers = Object.keys(data[0]);
+            const headerRow = document.createElement('tr');
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText.toUpperCase();
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // --- Táblázat tartalmának létrehozása ---
+            data.forEach(rowData => {
+                const tr = document.createElement('tr');
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.textContent = rowData[header];
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+
+            // A teljes táblázat hozzáadása a kijelölt div-hez.
+            document.getElementById('table-container').appendChild(table);
+        }
     </script>
 
 </body>
