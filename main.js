@@ -105,100 +105,100 @@ class DashboardManager {
     }
 
     processYearData(year) {
-    const data = this.datasets[year];
-    if (!data || !data.adatok) return;
+        const data = this.datasets[year];
+        if (!data || !data.adatok) return;
 
-    const adatok = data.adatok;
-    const totalO = _.sumBy(adatok, 'o');
-    const totalF = _.sumBy(adatok, 'f');
-    const avgPerPerson = totalF > 0 ? Math.round(totalO / totalF) : 0;
-    const avgYearlyIncome = totalF > 0 ? Math.round((totalO / totalF) / 0.0015) : 0;
-    
-    // Új dashboard kártyák kiszámítása
-    const companiesAbove1M = adatok.filter(d => d.o > 1000000).length;
-    const avgCompaniesPerEmployee = adatok.filter(d => d.f > 0).length > 0 ? 
-        Math.round(totalO / adatok.filter(d => d.f > 0).length) : 0;
-    const topCompaniesRevenue = adatok
-        .sort((a, b) => b.o - a.o)
-        .slice(0, 10)
-        .reduce((sum, d) => sum + d.o, 0);
+        const adatok = data.adatok;
+        const totalO = _.sumBy(adatok, 'o');
+        const totalF = _.sumBy(adatok, 'f');
+        const avgPerPerson = totalF > 0 ? Math.round(totalO / totalF) : 0;
+        const avgYearlyIncome = totalF > 0 ? Math.round((totalO / totalF) / 0.0015) : 0;
+        
+        // Új dashboard kártyák kiszámítása
+        const companiesAbove1M = adatok.filter(d => d.o > 1000000).length;
+        const avgCompaniesPerEmployee = adatok.filter(d => d.f > 0).length > 0 ? 
+            Math.round(totalO / adatok.filter(d => d.f > 0).length) : 0;
+        const topCompaniesRevenue = adatok
+            .sort((a, b) => b.o - a.o)
+            .slice(0, 10)
+            .reduce((sum, d) => sum + d.o, 0);
 
-    const statsHtml = `
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-building"></i>
+        const statsHtml = `
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div class="stats-label">Cégek száma</div>
+                    <div class="stats-value">${adatok.length.toLocaleString('hu-HU')}</div>
                 </div>
-                <div class="stats-label">Cégek száma</div>
-                <div class="stats-value">${adatok.length.toLocaleString('hu-HU')}</div>
             </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-currency-dollar"></i>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-currency-dollar"></i>
+                    </div>
+                    <div class="stats-label">Összes felajánlás</div>
+                    <div class="stats-value">${totalO.toLocaleString('hu-HU')}</div>
                 </div>
-                <div class="stats-label">Összes felajánlás</div>
-                <div class="stats-value">${totalO.toLocaleString('hu-HU')}</div>
             </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-people"></i>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="stats-label">Felajánlók száma</div>
+                    <div class="stats-value">${totalF.toLocaleString('hu-HU')}</div>
                 </div>
-                <div class="stats-label">Felajánlók száma</div>
-                <div class="stats-value">${totalF.toLocaleString('hu-HU')}</div>
             </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-calculator"></i>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-calculator"></i>
+                    </div>
+                    <div class="stats-label">Átlag/fő</div>
+                    <div class="stats-value">${avgPerPerson.toLocaleString('hu-HU')}</div>
                 </div>
-                <div class="stats-label">Átlag/fő</div>
-                <div class="stats-value">${avgPerPerson.toLocaleString('hu-HU')}</div>
             </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-graph-up"></i>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <div class="stats-label">Éves jövedelem/fő</div>
+                    <div class="stats-value">${avgYearlyIncome.toLocaleString('hu-HU')}</div>
                 </div>
-                <div class="stats-label">Éves jövedelem/fő</div>
-                <div class="stats-value">${avgYearlyIncome.toLocaleString('hu-HU')}</div>
             </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-trophy"></i>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-trophy"></i>
+                    </div>
+                    <div class="stats-label">1M+ felajánlás</div>
+                    <div class="stats-value">${companiesAbove1M.toLocaleString('hu-HU')}</div>
                 </div>
-                <div class="stats-label">1M+ felajánlás</div>
-                <div class="stats-value">${companiesAbove1M.toLocaleString('hu-HU')}</div>
             </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-pie-chart"></i>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-pie-chart"></i>
+                    </div>
+                    <div class="stats-label">Átlag/cég</div>
+                    <div class="stats-value">${avgCompaniesPerEmployee.toLocaleString('hu-HU')}</div>
                 </div>
-                <div class="stats-label">Átlag/cég</div>
-                <div class="stats-value">${avgCompaniesPerEmployee.toLocaleString('hu-HU')}</div>
             </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-star"></i>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <div class="stats-label">TOP 10 bevétel</div>
+                    <div class="stats-value">${topCompaniesRevenue.toLocaleString('hu-HU')}</div>
                 </div>
-                <div class="stats-label">TOP 10 bevétel</div>
-                <div class="stats-value">${topCompaniesRevenue.toLocaleString('hu-HU')}</div>
             </div>
-        </div>
-    `;
+        `;
 
-    $(`#stats${year}`).html(statsHtml);
+        $(`#stats${year}`).html(statsHtml);
 
         const tableData = adatok.map(d => {
             const avgPerPerson = d.f > 0 ? Math.round(d.o / d.f) : 0;
@@ -216,178 +216,199 @@ class DashboardManager {
             ];
         });
 
-        if (this.dataTables[year]) {
-            this.dataTables[year].destroy();
+        // Safely destroy existing DataTable
+        if ($.fn.DataTable.isDataTable(`#table${year}`)) {
+            $(`#table${year}`).DataTable().destroy();
         }
 
+        // Clear table content
+        $(`#table${year}`).empty();
+
         this.dataTables[year] = $(`#table${year}`).DataTable({
-            ...window.dashboardUtils.getDataTableConfig(),
+            ...window.dashboardUtils.getDataTableConfig({
+                order: [[2, 'desc']]
+            }),
             data: tableData,
             columns: [
-                { title: "Sorszám" },
+                { title: "Sorszám", width: "80px" },
                 { title: "Név" },
-                { title: "Összeg" },
-                { title: "Létszám" },
-                { title: "Átlag/fő" },
-                { title: "Éves jövedelem/fő" },
-                { title: "Adószám" },
+                { title: "Összeg", width: "120px" },
+                { title: "Létszám", width: "100px" },
+                { title: "Átlag/fő", width: "120px" },
+                { title: "Éves jövedelem/fő", width: "150px" },
+                { title: "Adószám", width: "130px" },
                 { title: "Cím" }
-            ],
-            order: [[2, 'desc']]
+            ]
         });
     }
 
     updateCombinedData() {
-    if (this.loadedYears.size === 0) return;
+        if (this.loadedYears.size === 0) return;
 
-    const companies = {};
-    
-    this.years.forEach(year => {
-        if (!this.datasets[year] || !this.datasets[year].adatok) return;
+        const companies = {};
         
-        this.datasets[year].adatok.forEach(d => {
-            if (!companies[d.a]) {
-                companies[d.a] = {
-                    nev: d.n,
-                    adoszam: d.a,
-                    cim: d.c,
-                    2023: { o: 0, f: 0 },
-                    2024: { o: 0, f: 0 },
-                    2025: { o: 0, f: 0 }
-                };
-            }
-            companies[d.a][year].o += d.o;
-            companies[d.a][year].f += d.f;
+        this.years.forEach(year => {
+            if (!this.datasets[year] || !this.datasets[year].adatok) return;
+            
+            this.datasets[year].adatok.forEach(d => {
+                if (!companies[d.a]) {
+                    companies[d.a] = {
+                        nev: d.n,
+                        adoszam: d.a,
+                        cim: d.c,
+                        2023: { o: 0, f: 0 },
+                        2024: { o: 0, f: 0 },
+                        2025: { o: 0, f: 0 }
+                    };
+                }
+                companies[d.a][year].o += d.o;
+                companies[d.a][year].f += d.f;
+            });
         });
-    });
 
-    const rows = Object.values(companies).map(c => {
-        const totalO = c[2023].o + c[2024].o + c[2025].o;
-        const totalF = c[2023].f + c[2024].f + c[2025].f;
+        const rows = Object.values(companies).map(c => {
+            const totalO = c[2023].o + c[2024].o + c[2025].o;
+            const totalF = c[2023].f + c[2024].f + c[2025].f;
+            const avgPerPerson = totalF > 0 ? Math.round(totalO / totalF) : 0;
+            const yearlyIncomePerPerson = totalF > 0 ? Math.round((totalO / totalF) * 100 / 0.15) : 0;
+
+            return [
+                c.nev,
+                c[2023].o.toLocaleString('hu-HU'),
+                c[2023].f.toLocaleString('hu-HU'),
+                c[2024].o.toLocaleString('hu-HU'),
+                c[2024].f.toLocaleString('hu-HU'),
+                c[2025].o.toLocaleString('hu-HU'),
+                c[2025].f.toLocaleString('hu-HU'),
+                totalO.toLocaleString('hu-HU'),
+                avgPerPerson.toLocaleString('hu-HU'),
+                yearlyIncomePerPerson.toLocaleString('hu-HU'),
+                window.dashboardUtils.formatTaxNumber(c.adoszam),
+                c.cim
+            ];
+        });
+
+        const totalCompanies = rows.length;
+        const totalO = _.sumBy(Object.values(companies), c => c[2023].o + c[2024].o + c[2025].o);
+        const totalF = _.sumBy(Object.values(companies), c => c[2023].f + c[2024].f + c[2025].f);
         const avgPerPerson = totalF > 0 ? Math.round(totalO / totalF) : 0;
-        const yearlyIncomePerPerson = totalF > 0 ? Math.round((totalO / totalF) * 100 / 0.15) : 0;
+        const avgYearlyIncome = totalF > 0 ? Math.round((totalO / totalF) / 0.0015) : 0;
+        
+        // Új kártyák az összesítőhöz
+        const companiesAbove1M = Object.values(companies).filter(c => 
+            (c[2023].o + c[2024].o + c[2025].o) > 1000000).length;
+        const avgPerCompany = totalCompanies > 0 ? Math.round(totalO / totalCompanies) : 0;
+        const growthCompanies = Object.values(companies).filter(c => 
+            c[2025].o > c[2024].o && c[2024].o > c[2023].o).length;
 
-        return [
-            c.nev,
-            c[2023].o.toLocaleString('hu-HU'),
-            c[2023].f.toLocaleString('hu-HU'),
-            c[2024].o.toLocaleString('hu-HU'),
-            c[2024].f.toLocaleString('hu-HU'),
-            c[2025].o.toLocaleString('hu-HU'),
-            c[2025].f.toLocaleString('hu-HU'),
-            totalO.toLocaleString('hu-HU'),
-            avgPerPerson.toLocaleString('hu-HU'),
-            yearlyIncomePerPerson.toLocaleString('hu-HU'),
-            window.dashboardUtils.formatTaxNumber(c.adoszam),
-            c.cim
-        ];
-    });
+        const combinedStatsHtml = `
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div class="stats-label">Összes cég</div>
+                    <div class="stats-value">${totalCompanies.toLocaleString('hu-HU')}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-currency-dollar"></i>
+                    </div>
+                    <div class="stats-label">Összes felajánlás</div>
+                    <div class="stats-value">${totalO.toLocaleString('hu-HU')}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="stats-label">Összes felajánló</div>
+                    <div class="stats-value">${totalF.toLocaleString('hu-HU')}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-calculator"></i>
+                    </div>
+                    <div class="stats-label">Átlag/fő</div>
+                    <div class="stats-value">${avgPerPerson.toLocaleString('hu-HU')}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <div class="stats-label">Átlagos éves jövedelem/fő</div>
+                    <div class="stats-value">${avgYearlyIncome.toLocaleString('hu-HU')}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-trophy"></i>
+                    </div>
+                    <div class="stats-label">1M+ összesen</div>
+                    <div class="stats-value">${companiesAbove1M.toLocaleString('hu-HU')}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-pie-chart"></i>
+                    </div>
+                    <div class="stats-label">Átlag/cég</div>
+                    <div class="stats-value">${avgPerCompany.toLocaleString('hu-HU')}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="stats-icon">
+                        <i class="bi bi-trending-up"></i>
+                    </div>
+                    <div class="stats-label">Növekvő cégek</div>
+                    <div class="stats-value">${growthCompanies.toLocaleString('hu-HU')}</div>
+                </div>
+            </div>
+        `;
 
-    const totalCompanies = rows.length;
-    const totalO = _.sumBy(Object.values(companies), c => c[2023].o + c[2024].o + c[2025].o);
-    const totalF = _.sumBy(Object.values(companies), c => c[2023].f + c[2024].f + c[2025].f);
-    const avgPerPerson = totalF > 0 ? Math.round(totalO / totalF) : 0;
-    const avgYearlyIncome = totalF > 0 ? Math.round((totalO / totalF) / 0.0015) : 0;
-    
-    // Új kártyák az összesítőhöz
-    const companiesAbove1M = Object.values(companies).filter(c => 
-        (c[2023].o + c[2024].o + c[2025].o) > 1000000).length;
-    const avgPerCompany = totalCompanies > 0 ? Math.round(totalO / totalCompanies) : 0;
-    const growthCompanies = Object.values(companies).filter(c => 
-        c[2025].o > c[2024].o && c[2024].o > c[2023].o).length;
+        $('#combinedStats').html(combinedStatsHtml);
 
-    const combinedStatsHtml = `
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-building"></i>
-                </div>
-                <div class="stats-label">Összes cég</div>
-                <div class="stats-value">${totalCompanies.toLocaleString('hu-HU')}</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-currency-dollar"></i>
-                </div>
-                <div class="stats-label">Összes felajánlás</div>
-                <div class="stats-value">${totalO.toLocaleString('hu-HU')}</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-people"></i>
-                </div>
-                <div class="stats-label">Összes felajánló</div>
-                <div class="stats-value">${totalF.toLocaleString('hu-HU')}</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-calculator"></i>
-                </div>
-                <div class="stats-label">Átlag/fő</div>
-                <div class="stats-value">${avgPerPerson.toLocaleString('hu-HU')}</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-graph-up"></i>
-                </div>
-                <div class="stats-label">Átlagos éves jövedelem/fő</div>
-                <div class="stats-value">${avgYearlyIncome.toLocaleString('hu-HU')}</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-trophy"></i>
-                </div>
-                <div class="stats-label">1M+ összesen</div>
-                <div class="stats-value">${companiesAbove1M.toLocaleString('hu-HU')}</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-pie-chart"></i>
-                </div>
-                <div class="stats-label">Átlag/cég</div>
-                <div class="stats-value">${avgPerCompany.toLocaleString('hu-HU')}</div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="stats-card">
-                <div class="stats-icon">
-                    <i class="bi bi-trending-up"></i>
-                </div>
-                <div class="stats-label">Növekvő cégek</div>
-                <div class="stats-value">${growthCompanies.toLocaleString('hu-HU')}</div>
-            </div>
-        </div>
-    `;
+        // Safely destroy existing DataTable
+        if ($.fn.DataTable.isDataTable('#combinedTable')) {
+            $('#combinedTable').DataTable().destroy();
+        }
 
-    $('#combinedStats').html(combinedStatsHtml);
+        // Clear table content
+        $('#combinedTable').empty();
 
-    if (this.dataTables.combined) {
-        this.dataTables.combined.destroy();
-    }
         this.dataTables.combined = $('#combinedTable').DataTable({
-        ...window.dashboardUtils.getDataTableConfig(),
-        data: rows,
-        scrollX: true,
-        columnDefs: [
-            { responsivePriority: 1, targets: [0, 7] },
-            { responsivePriority: 2, targets: [8, 9] },
-            { className: 'none', targets: [10, 11] }
-        ],
-        order: [[7, 'desc']]
-    });
-}
+            ...window.dashboardUtils.getDataTableConfig({
+                scrollX: true,
+                order: [[7, 'desc']]
+            }),
+            data: rows,
+            columns: [
+                { title: "Név" },
+                { title: "2023 összeg", width: "120px" },
+                { title: "2023 létszám", width: "100px" },
+                { title: "2024 összeg", width: "120px" },
+                { title: "2024 létszám", width: "100px" },
+                { title: "2025 összeg", width: "120px" },
+                { title: "2025 létszám", width: "100px" },
+                { title: "Összes összeg", width: "130px" },
+                { title: "Átlag/fő", width: "100px" },
+                { title: "Éves jövedelem/fő", width: "150px" },
+                { title: "Adószám", width: "130px" },
+                { title: "Cím" }
+            ]
+        });
+    }
+
     updateAnalytics() {
         if (this.loadedYears.size === 0) return;
         window.analyticsManager.updateAnalyticsView(this.datasets);
