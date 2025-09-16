@@ -791,13 +791,8 @@ async fetchYearData(year) {
                this.dataTables.combined = $('#combinedTable').DataTable({
     data: rows,
     pageLength: 25,
-    responsive: {
-        details: {
-            type: 'column',
-            target: 0
-        }
-    },
-    scrollX: false, // Kikapcsoljuk a scrollX-et
+    responsive: false,
+    scrollX: true, // Kikapcsoljuk a scrollX-et
     dom: 'Bfrtip',
     buttons: [
         {
