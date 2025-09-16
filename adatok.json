@@ -1,12 +1,17 @@
-{
-  "felhasznalok": [
+[
     {
-      "nev": "Aladár",
-      "kor": 30
+        "nev": "Aladár",
+        "kor": 30,
+        "email": "aladar@példa.hu"
     },
     {
-      "nev": "Béla",
-      "kor": 25
+        "nev": "Béla",
+        "kor": 25,
+        "email": "bela@példa.hu"
+    },
+    {
+        "nev": "Cecil",
+        "kor": 45,
+        "email": "cecil@példa.hu"
     }
-  ]
-}
+]
