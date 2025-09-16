@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Felajánlások Dashboard 2023-2025</title>
+    
+    <!-- Modern CSS Framework -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Preloader -->
+    <div id="preloader" class="preloader" style="display: none;">
+        <div class="preloader-content">
+            <div class="spinner"></div>
+            <h6 id="preloaderText">Adatok betöltése...</h6>
+            <div id="preloaderPercent" class="fw-bold fs-4 mb-2">0%</div>
+            <div class="progress-bar-custom">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="row align-items-center">
+                <div class="col-12 col-md-8 mb-2 mb-md-0">
+                    <div class="btn-group flex-wrap" role="group">
+                        <button id="load2023" class="btn load-btn me-2 mb-2">
+                            <span class="status-indicator" id="status2023"></span>
+                            <i class="bi bi-download me-1"></i>2023
+                        </button>
+                        <button id="load2024" class="btn load-btn me-2 mb-2">
+                            <span class="status-indicator" id="status2024"></span>
+                            <i class="bi bi-download me-1"></i>2024
+                        </button>
+                        <button id="load2025" class="btn load-btn me-2 mb-2">
+                            <span class="status-indicator" id="status2025"></span>
+                            <i class="bi bi-download me-1"></i>2025
+                        </button>
+                        <button id="loadAll" class="btn btn-secondary me-2 mb-2">
+                            <i class="bi bi-cloud-download me-1"></i>Összes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="p-3">
+            <ul class="nav nav-pills nav-pills-custom" id="yearTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="combined-tab" data-bs-toggle="pill" data-bs-target="#combined" type="button">
+                        <i class="bi bi-pie-chart me-1"></i>Összesítő
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="analytics-tab" data-bs-toggle="pill" data-bs-target="#analytics" type="button">
+                        <i class="bi bi-graph-up me-1"></i>Analitika
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="year2025-tab" data-bs-toggle="pill" data-bs-target="#year2025" type="button">
+                        <i class="bi bi-calendar3 me-1"></i>2025
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="year2024-tab" data-bs-toggle="pill" data-bs-target="#year2024" type="button">
+                        <i class="bi bi-calendar2 me-1"></i>2024
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="year2023-tab" data-bs-toggle="pill" data-bs-target="#year2023" type="button">
+                        <i class="bi bi-calendar me-1"></i>2023
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content px-3 pb-3">
+            <!-- Combined View -->
+            <div class="tab-pane fade show active" id="combined">
+                <div id="combinedStats" class="row"></div>
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table id="combinedTable" class="table table-sm w-100">
+                            <thead>
+                                <tr>
+                                    <th>Név</th>
+                                    <th>2023 összeg</th>
+                                    <th>2023 létszám</th>
+                                    <th>2024 összeg</th>
+                                    <th>2024 létszám</th>
+                                    <th>2025 összeg</th>
+                                    <th>2025 létszám</th>
+                                    <th>Összes összeg</th>
+                                    <th>Összes létszám</th>
+                                    <th>Átlag/fő</th>
+                                    <th>Éves jövedelem/fő</th>
+                                    <th>Adószám</th>
+                                    <th>Cím</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics View -->
+            <div class="tab-pane fade" id="analytics">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="analytics-nav">
+                            <ul class="nav nav-pills nav-pills-custom" id="analyticsTabs" role="tablist">
+                                <li class="nav-item">
+                                    <button class="nav-link active" id="top-revenue-tab" data-bs-toggle="pill" data-bs-target="#top-revenue" type="button">
+                                        <i class="bi bi-trophy me-1"></i>TOP bevétel
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" id="top100-tab" data-bs-toggle="pill" data-bs-target="#top100" type="button">
+                                        <i class="bi bi-list-ol me-1"></i>TOP 100
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" id="locations-tab" data-bs-toggle="pill" data-bs-target="#locations" type="button">
+                                        <i class="bi bi-geo-alt me-1"></i>Székhelyek
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" id="special-tab" data-bs-toggle="pill" data-bs-target="#special" type="button">
+                                        <i class="bi bi-star me-1"></i>Kiemelt
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" id="single-donor-tab" data-bs-toggle="pill" data-bs-target="#single-donor" type="button">
+                                        <i class="bi bi-person me-1"></i>1 felajánló
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content mt-3">
+                    <!-- TOP bevétel 3 év -->
+                    <div class="tab-pane fade show active" id="top-revenue">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="table-container">
+                                    <h6 class="mb-3"><i class="bi bi-trophy text-warning me-2"></i>TOP bevételű cégek (3 év)</h6>
+                                    <div class="table-responsive">
+                                        <table id="topRevenueTable" class="table table-sm w-100"></table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="chart-container">
+                                    <h6 class="mb-3"><i class="bi bi-bar-chart me-2"></i>Bevétel változás</h6>
+                                    <canvas id="revenueChangeChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TOP 100 -->
+                    <div class="tab-pane fade" id="top100">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="table-container">
+                                    <h6 class="mb-3"><i class="bi bi-list-ol text-primary me-2"></i>TOP 100 cég (2025 alapján)</h6>
+                                    <div class="table-responsive">
+                                        <table id="top100Table" class="table table-sm w-100"></table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="chart-container">
+                                    <h6 class="mb-3"><i class="bi bi-pie-chart me-2"></i>Bevétel megoszlás</h6>
+                                    <canvas id="top100Chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Székhelyek -->
+                    <div class="tab-pane fade" id="locations">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="table-container">
+                                    <h6 class="mb-3"><i class="bi bi-geo-alt text-success me-2"></i>Székhelyek szerint</h6>
+                                    <div class="table-responsive">
+                                        <table id="locationsTable" class="table table-sm w-100"></table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="chart-container">
+                                    <h6 class="mb-3"><i class="bi bi-map me-2"></i>Cégek megoszlása</h6>
+                                    <canvas id="locationsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kiemelt -->
+                    <div class="tab-pane fade" id="special">
+                        <div class="table-container">
+                            <h6 class="mb-3"><i class="bi bi-star text-warning me-2"></i>Kiemelt cégek (kevés fő, magas összeg)</h6>
+                            <div class="table-responsive">
+                                <table id="specialTable" class="table table-sm w-100"></table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 1 felajánló -->
+                    <div class="tab-pane fade" id="single-donor">
+                        <div class="table-container">
+                            <h6 class="mb-3"><i class="bi bi-person text-info me-2"></i>1 felajánlós cégek (2025-ben)</h6>
+                            <div class="table-responsive">
+                                <table id="singleDonorTable" class="table table-sm w-100"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Individual Year Views -->
+            <div class="tab-pane fade" id="year2025">
+                <div id="stats2025" class="row"></div>
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table id="table2025" class="table table-sm w-100"></table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="year2024">
+                <div id="stats2024" class="row"></div>
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table id="table2024" class="table table-sm w-100"></table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="year2023">
+                <div id="stats2023" class="row"></div>
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table id="table2023" class="table table-sm w-100"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="utils.js"></script>
+    <script src="charts.js"></script>
+    <script src="analytics.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
