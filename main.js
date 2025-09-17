@@ -348,21 +348,8 @@ class DashboardManager {
             
             // Clear analytics
             if (window.analyticsManager) {
-                // Destroy charts
-                Object.values(window.analyticsManager.charts || {}).forEach(chart => {
-                    try {
-                        chart.destroy();
-                    } catch (e) {
-                        console.warn('Error destroying chart:', e);
-                    }
-                });
-                window.analyticsManager.charts = {};
-                
-                // Clear data
-                window.analyticsManager.topRevenueData = [];
-                window.analyticsManager.top100Data = [];
-                window.analyticsManager.locationsData = [];
-                window.analyticsManager.specialData = [];
+                // Use the new reset method
+                window.analyticsManager.resetAllData();
                 
                 // Clear analytics tables
                 ['topRevenueTable', 'top100Table', 'specialTable'].forEach(tableId => {
