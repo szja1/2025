@@ -26,47 +26,50 @@
         </div>
     </div>
 
+    <!-- Alert Container -->
+    <div id="alertContainer" class="position-fixed top-0 start-50 translate-middle-x" style="z-index: 1100; margin-top: 20px;"></div>
+
     <div class="dashboard-container">
         <!-- Control Panel -->
-<div class="control-panel">
-    <div class="row align-items-center">
-        <div class="col-12 col-md-6 mb-2 mb-md-0">
-            <div class="btn-group flex-wrap" role="group">
-                <button id="load2023" class="btn load-btn me-2 mb-2">
-                    <span class="status-indicator" id="status2023"></span>
-                    <i class="bi bi-download me-1"></i>2023
-                </button>
-                <button id="load2024" class="btn load-btn me-2 mb-2">
-                    <span class="status-indicator" id="status2024"></span>
-                    <i class="bi bi-download me-1"></i>2024
-                </button>
-                <button id="load2025" class="btn load-btn me-2 mb-2">
-                    <span class="status-indicator" id="status2025"></span>
-                    <i class="bi bi-download me-1"></i>2025
-                </button>
-                <button id="loadAll" class="btn btn-secondary me-2 mb-2">
-                    <i class="bi bi-cloud-download me-1"></i>Összes
-                </button>
-            </div>
-        </div>
-        <div class="col-12 col-md-6">
-            <div id="storageControls" class="d-flex align-items-center justify-content-md-end gap-3">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="storageToggle">
-                    <label class="form-check-label" for="storageToggle">
-                        <small id="storageStatus">Helyi tárolás</small>
-                    </label>
+        <div class="control-panel">
+            <div class="row align-items-center">
+                <div class="col-12 col-md-6 mb-2 mb-md-0">
+                    <div class="btn-group flex-wrap" role="group">
+                        <button id="load2023" class="btn load-btn">
+                            <span class="status-indicator" id="status2023"></span>
+                            <i class="bi bi-download me-1"></i>2023
+                        </button>
+                        <button id="load2024" class="btn load-btn">
+                            <span class="status-indicator" id="status2024"></span>
+                            <i class="bi bi-download me-1"></i>2024
+                        </button>
+                        <button id="load2025" class="btn load-btn">
+                            <span class="status-indicator" id="status2025"></span>
+                            <i class="bi bi-download me-1"></i>2025
+                        </button>
+                        <button id="loadAll" class="btn btn-secondary">
+                            <i class="bi bi-cloud-download me-1"></i>Összes
+                        </button>
+                    </div>
                 </div>
-                <button id="clearStorage" class="btn btn-outline-danger btn-sm" disabled>
-                    <i class="bi bi-trash me-1"></i>Törlés
-                </button>
+                <div class="col-12 col-md-6">
+                    <div id="storageControls" class="d-flex align-items-center justify-content-md-end gap-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="storageToggle">
+                            <label class="form-check-label" for="storageToggle">
+                                <small id="storageStatus">Helyi tárolás</small>
+                            </label>
+                        </div>
+                        <button id="clearStorage" class="btn btn-outline-danger btn-sm" disabled>
+                            <i class="bi bi-trash me-1"></i>Törlés
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
         <!-- Navigation -->
-        <div class="p-3">
+        <div class="nav-container">
             <ul class="nav nav-pills nav-pills-custom" id="yearTabs" role="tablist">
                 <li class="nav-item">
                     <button class="nav-link active" id="combined-tab" data-bs-toggle="pill" data-bs-target="#combined" type="button">
@@ -97,41 +100,38 @@
         </div>
 
         <!-- Tab Content -->
-        <div class="tab-content px-3 pb-3">
+        <div class="tab-content">
             <!-- Combined View -->
-            <div class="tab-content px-3 pb-3">
-    <!-- Combined View -->
-    <div class="tab-pane fade show active" id="combined">
-        <div id="combinedStats" class="row"></div>
-        <div class="table-container">
-            <div class="table-responsive">
-                <table id="combinedTable" class="table table-sm w-100">
-                    <thead>
-                        <tr>
-                            <th>Név</th>
-                            <th>2023 összeg</th>
-                            <th>2023 létszám</th>
-                            <th>2024 összeg</th>
-                            <th>2024 létszám</th>
-                            <th>2025 összeg</th>
-                            <th>2025 létszám</th>
-                            <th>Összes összeg</th>
-                            <th>Átlag/fő</th>
-                            <th>Éves jövedelem/fő</th>
-                            <th>Adószám</th>
-                            <th>Cím</th>
-                        </tr>
-                    </thead>
-                </table>
+            <div class="tab-pane fade show active" id="combined">
+                <div id="combinedStats" class="row g-3 px-3 mb-4"></div>
+                <div class="table-container">
+                    <h6><i class="bi bi-table me-2"></i>Összesített adatok (2023-2025)</h6>
+                    <div class="table-responsive">
+                        <table id="combinedTable" class="table table-sm w-100">
+                            <thead>
+                                <tr>
+                                    <th>Név</th>
+                                    <th>2023 összeg</th>
+                                    <th>2023 létszám</th>
+                                    <th>2024 összeg</th>
+                                    <th>2024 létszám</th>
+                                    <th>2025 összeg</th>
+                                    <th>2025 létszám</th>
+                                    <th>Összes összeg</th>
+                                    <th>Átlag/fő</th>
+                                    <th>Éves jövedelem/fő</th>
+                                    <th>Adószám</th>
+                                    <th>Cím</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Analytics View -->
-    <div class="tab-pane fade" id="analytics">
-        <div class="row">
-            <div class="col-12">
-                <div class="analytics-nav">
+            <!-- Analytics View -->
+            <div class="tab-pane fade" id="analytics">
+                <div class="nav-container">
                     <ul class="nav nav-pills nav-pills-custom" id="analyticsTabs" role="tablist">
                         <li class="nav-item">
                             <button class="nav-link active" id="top-revenue-tab" data-bs-toggle="pill" data-bs-target="#top-revenue" type="button">
@@ -155,60 +155,48 @@
                         </li>
                     </ul>
                 </div>
-            </div>
-        </div>
 
-        <div class="tab-content mt-3">
-            <!-- TOP bevétel 3 év -->
-            <div class="tab-pane fade show active" id="top-revenue">
-                <div class="table-container">
-                    <h6><i class="bi bi-trophy text-warning me-2"></i>TOP bevételű cégek (3 év)</h6>
-                    <div class="table-responsive">
-                        <table id="topRevenueTable" class="table table-sm w-100"></table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TOP 100 -->
-            <div class="tab-pane fade" id="top100">
-                <div class="chart-container">
-                    <h6><i class="bi bi-graph-up me-2"></i>TOP 25 cég bevétel trendje</h6>
-                    <canvas id="top25TrendChart"></canvas>
-                </div>
-                <div class="table-container">
-                    <h6><i class="bi bi-list-ol text-primary me-2"></i>TOP 100 cég (2025 alapján)</h6>
-                    <div class="table-responsive">
-                        <table id="top100Table" class="table table-sm w-100"></table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Székhelyek -->
-            <div class="tab-pane fade" id="locations">
-                <div class="table-container">
-                    <h6><i class="bi bi-geo-alt text-success me-2"></i>Székhelyek szerint</h6>
-                    <div id="locationsContent"></div>
-                </div>
-            </div>
-
-            <!-- Kiemelt -->
-            <div class="tab-pane fade" id="special">
-                <div class="table-container">
-                    <h6><i class="bi bi-star text-warning me-2"></i>Kiemelt cégek</h6>
-                    <div class="table-responsive">
-                        <table id="specialTable" class="table table-sm w-100"></table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-                    <!-- 1 felajánló -->
-                    <div class="tab-pane fade" id="single-donor">
+                <div class="tab-content">
+                    <!-- TOP bevétel 3 év -->
+                    <div class="tab-pane fade show active" id="top-revenue">
                         <div class="table-container">
-                            <h6 class="mb-3"><i class="bi bi-person text-info me-2"></i>1 felajánlós cégek (2025-ben)</h6>
+                            <h6><i class="bi bi-trophy text-warning me-2"></i>TOP bevételű cégek (3 év)</h6>
                             <div class="table-responsive">
-                                <table id="singleDonorTable" class="table table-sm w-100"></table>
+                                <table id="topRevenueTable" class="table table-sm w-100"></table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TOP 100 -->
+                    <div class="tab-pane fade" id="top100">
+                        <div class="chart-container">
+                            <h6><i class="bi bi-graph-up me-2"></i>TOP 25 cég bevétel trendje</h6>
+                            <div style="height: 400px; position: relative;">
+                                <canvas id="top25TrendChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <h6><i class="bi bi-list-ol text-primary me-2"></i>TOP 100 cég (2025 alapján)</h6>
+                            <div class="table-responsive">
+                                <table id="top100Table" class="table table-sm w-100"></table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Székhelyek -->
+                    <div class="tab-pane fade" id="locations">
+                        <div class="table-container">
+                            <h6><i class="bi bi-geo-alt text-success me-2"></i>Székhelyek szerint</h6>
+                            <div id="locationsContent"></div>
+                        </div>
+                    </div>
+
+                    <!-- Kiemelt -->
+                    <div class="tab-pane fade" id="special">
+                        <div class="table-container">
+                            <h6><i class="bi bi-star text-warning me-2"></i>Kiemelt cégek</h6>
+                            <div class="table-responsive">
+                                <table id="specialTable" class="table table-sm w-100"></table>
                             </div>
                         </div>
                     </div>
@@ -217,8 +205,9 @@
 
             <!-- Individual Year Views -->
             <div class="tab-pane fade" id="year2025">
-                <div id="stats2025" class="row"></div>
+                <div id="stats2025" class="row g-3 px-3 mb-4"></div>
                 <div class="table-container">
+                    <h6><i class="bi bi-calendar3 me-2"></i>2025 évi adatok</h6>
                     <div class="table-responsive">
                         <table id="table2025" class="table table-sm w-100"></table>
                     </div>
@@ -226,8 +215,9 @@
             </div>
 
             <div class="tab-pane fade" id="year2024">
-                <div id="stats2024" class="row"></div>
+                <div id="stats2024" class="row g-3 px-3 mb-4"></div>
                 <div class="table-container">
+                    <h6><i class="bi bi-calendar2 me-2"></i>2024 évi adatok</h6>
                     <div class="table-responsive">
                         <table id="table2024" class="table table-sm w-100"></table>
                     </div>
@@ -235,8 +225,9 @@
             </div>
 
             <div class="tab-pane fade" id="year2023">
-                <div id="stats2023" class="row"></div>
+                <div id="stats2023" class="row g-3 px-3 mb-4"></div>
                 <div class="table-container">
+                    <h6><i class="bi bi-calendar me-2"></i>2023 évi adatok</h6>
                     <div class="table-responsive">
                         <table id="table2023" class="table table-sm w-100"></table>
                     </div>
@@ -265,5 +256,13 @@
     <script src="charts.js"></script>
     <script src="analytics.js"></script>
     <script src="main.js"></script>
+    
+    <script>
+        // Initialize dashboard when DOM is ready
+        $(document).ready(function() {
+            console.log('DOM ready, initializing dashboard...');
+            window.dashboard = new DashboardManager();
+        });
+    </script>
 </body>
 </html>
