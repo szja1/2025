@@ -1,4 +1,4 @@
-// IndexedDB storage manager
+// IndexedDB storage manager - JAVÍTOTT VERZIÓ
 class StorageManager {
     constructor() {
         this.dbName = 'FelajanlasokDB';
@@ -60,32 +60,38 @@ class StorageManager {
         });
     }
 
+    // JAVÍTOTT: Proper promise handling for IndexedDB operations
     async saveYearData(year, data) {
-        if (!this.storageEnabled || !this.db) return false;
+        if (!this.storageEnabled || !this.db) {
+            console.log('Storage not enabled or DB not available');
+            return false;
+        }
 
         try {
             const transaction = this.db.transaction([`data${year}`, 'metadata'], 'readwrite');
             const store = transaction.objectStore(`data${year}`);
             const metaStore = transaction.objectStore('metadata');
 
-            // Clear existing data
-            await store.clear();
+            // Clear existing data - properly promisified
+            await this.promisifyRequest(store.clear());
 
-            // Save new data
+            // Save new data - properly handle each add operation
             if (data && data.adatok && Array.isArray(data.adatok)) {
                 for (const item of data.adatok) {
-                    await store.add(item);
+                    await this.promisifyRequest(store.add(item));
                 }
             }
 
             // Save metadata
-            await metaStore.put({
+            await this.promisifyRequest(metaStore.put({
                 key: `lastUpdate${year}`,
                 value: new Date().toISOString()
-            });
+            }));
 
-            await transaction.complete;
-            console.log(`${year} adatok mentve IndexedDB-be`);
+            // Wait for transaction to complete
+            await this.promisifyTransaction(transaction);
+            
+            console.log(`${year} adatok sikeresen mentve IndexedDB-be`);
             return true;
         } catch (error) {
             console.error(`Hiba ${year} mentésekor:`, error);
@@ -93,25 +99,26 @@ class StorageManager {
         }
     }
 
+    // JAVÍTOTT: Better promise handling for loading data
     async loadYearData(year) {
-        if (!this.db) return null;
+        if (!this.db) {
+            console.log('Database not available for loading');
+            return null;
+        }
 
         try {
             const transaction = this.db.transaction([`data${year}`], 'readonly');
             const store = transaction.objectStore(`data${year}`);
-            const request = store.getAll();
-
-            return new Promise((resolve, reject) => {
-                request.onsuccess = () => {
-                    const data = request.result;
-                    if (data && data.length > 0) {
-                        resolve({ adatok: data });
-                    } else {
-                        resolve(null);
-                    }
-                };
-                request.onerror = () => reject(request.error);
-            });
+            
+            const data = await this.promisifyRequest(store.getAll());
+            
+            if (data && data.length > 0) {
+                console.log(`${year} betöltve IndexedDB-ből: ${data.length} rekord`);
+                return { adatok: data };
+            } else {
+                console.log(`Nincs adat ${year}-ra IndexedDB-ben`);
+                return null;
+            }
         } catch (error) {
             console.error(`Hiba ${year} betöltésekor:`, error);
             return null;
@@ -160,21 +167,16 @@ class StorageManager {
         try {
             const transaction = this.db.transaction(['metadata'], 'readonly');
             const store = transaction.objectStore('metadata');
-            const request = store.get(key);
-
-            return new Promise((resolve, reject) => {
-                request.onsuccess = () => {
-                    const result = request.result;
-                    resolve(result ? result.value : null);
-                };
-                request.onerror = () => reject(request.error);
-            });
+            
+            const result = await this.promisifyRequest(store.get(key));
+            return result ? result.value : null;
         } catch (error) {
             console.error('Metadata lekérési hiba:', error);
             return null;
         }
     }
 
+    // JAVÍTOTT: Proper transaction and request handling for clearing data
     async clearAllData() {
         if (!this.db) return false;
 
@@ -185,14 +187,16 @@ class StorageManager {
             // Clear all year data
             for (const year of years) {
                 const store = transaction.objectStore(`data${year}`);
-                await store.clear();
+                await this.promisifyRequest(store.clear());
             }
 
             // Clear metadata
             const metaStore = transaction.objectStore('metadata');
-            await metaStore.clear();
+            await this.promisifyRequest(metaStore.clear());
 
-            await transaction.complete;
+            // Wait for transaction to complete
+            await this.promisifyTransaction(transaction);
+            
             console.log('Összes IndexedDB adat törölve');
             return true;
         } catch (error) {
@@ -238,6 +242,29 @@ class StorageManager {
 
     isStorageEnabled() {
         return this.storageEnabled;
+    }
+
+    // HELPER METHODS - ÚJ: Proper promise wrappers for IndexedDB operations
+    
+    /**
+     * Converts an IndexedDB request to a Promise
+     */
+    promisifyRequest(request) {
+        return new Promise((resolve, reject) => {
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    /**
+     * Converts an IndexedDB transaction to a Promise
+     */
+    promisifyTransaction(transaction) {
+        return new Promise((resolve, reject) => {
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => reject(transaction.error);
+            transaction.onabort = () => reject(new Error('Transaction aborted'));
+        });
     }
 }
 
