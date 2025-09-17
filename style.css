@@ -251,6 +251,11 @@ body {
     margin: 0;
 }
 
+/* Navigation Container */
+.nav-container {
+    padding: 0 var(--spacing);
+}
+
 /* Navigáció - mobil first */
 .nav-pills-custom {
     display: flex;
