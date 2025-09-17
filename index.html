@@ -28,28 +28,43 @@
 
     <div class="dashboard-container">
         <!-- Control Panel -->
-        <div class="control-panel">
-            <div class="row align-items-center">
-                <div class="col-12 col-md-8 mb-2 mb-md-0">
-                    <div class="btn-group flex-wrap" role="group">
-                        <button id="load2023" class="btn load-btn me-2 mb-2">
-                            <span class="status-indicator" id="status2023"></span>
-                            <i class="bi bi-download me-1"></i>2023
-                        </button>
-                        <button id="load2024" class="btn load-btn me-2 mb-2">
-                            <span class="status-indicator" id="status2024"></span>
-                            <i class="bi bi-download me-1"></i>2024
-                        </button>
-                        <button id="load2025" class="btn load-btn me-2 mb-2">
-                            <span class="status-indicator" id="status2025"></span>
-                            <i class="bi bi-download me-1"></i>2025
-                        </button>
-                        <button id="loadAll" class="btn btn-secondary me-2 mb-2">
-                            <i class="bi bi-cloud-download me-1"></i>Összes
-                        </button>
-                    </div>
-                </div>
+        <!-- Control Panel -->
+<div class="control-panel">
+    <div class="row align-items-center">
+        <div class="col-12 col-md-6 mb-2 mb-md-0">
+            <div class="btn-group flex-wrap" role="group">
+                <button id="load2023" class="btn load-btn me-2 mb-2">
+                    <span class="status-indicator" id="status2023"></span>
+                    <i class="bi bi-download me-1"></i>2023
+                </button>
+                <button id="load2024" class="btn load-btn me-2 mb-2">
+                    <span class="status-indicator" id="status2024"></span>
+                    <i class="bi bi-download me-1"></i>2024
+                </button>
+                <button id="load2025" class="btn load-btn me-2 mb-2">
+                    <span class="status-indicator" id="status2025"></span>
+                    <i class="bi bi-download me-1"></i>2025
+                </button>
+                <button id="loadAll" class="btn btn-secondary me-2 mb-2">
+                    <i class="bi bi-cloud-download me-1"></i>Összes
+                </button>
             </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div id="storageControls" class="d-flex align-items-center justify-content-md-end gap-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="storageToggle">
+                    <label class="form-check-label" for="storageToggle">
+                        <small id="storageStatus">Helyi tárolás</small>
+                    </label>
+                </div>
+                <button id="clearStorage" class="btn btn-outline-danger btn-sm" disabled>
+                    <i class="bi bi-trash me-1"></i>Törlés
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
         </div>
 
         <!-- Navigation -->
