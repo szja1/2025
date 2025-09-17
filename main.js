@@ -442,6 +442,7 @@ class DashboardManager {
     this.dataTables.combined = $('#combinedTable').DataTable({
         ...window.dashboardUtils.getDataTableConfig({
             scrollX: true,
+            responsive: false,
             order: [[7, 'desc']]
         }),
         data: rows,
