@@ -319,42 +319,69 @@ class DashboardManager {
             this.datasets = {};
             this.loadedYears.clear();
             
+            // Clear DataTables properly
             this.years.forEach(year => {
                 this.updateStatus(year, '');
                 $(`#stats${year}`).empty();
                 if (this.dataTables[year]) {
-                    this.dataTables[year].destroy();
+                    try {
+                        this.dataTables[year].destroy();
+                    } catch (e) {
+                        console.warn(`Error destroying DataTable for ${year}:`, e);
+                    }
                     delete this.dataTables[year];
                 }
                 $(`#table${year}`).empty();
             });
             
+            // Clear combined table
             if (this.dataTables.combined) {
-                this.dataTables.combined.destroy();
+                try {
+                    this.dataTables.combined.destroy();
+                } catch (e) {
+                    console.warn('Error destroying combined DataTable:', e);
+                }
                 delete this.dataTables.combined;
             }
             $('#combinedTable').empty();
             $('#combinedStats').empty();
             
-            $('#storageToggle').prop('checked', false);
-            window.storageManager.setStorageEnabled(false);
-            this.updateStorageUI();
-            this.updateUI();
-            
+            // Clear analytics
             if (window.analyticsManager) {
+                // Destroy charts
+                Object.values(window.analyticsManager.charts || {}).forEach(chart => {
+                    try {
+                        chart.destroy();
+                    } catch (e) {
+                        console.warn('Error destroying chart:', e);
+                    }
+                });
+                window.analyticsManager.charts = {};
+                
+                // Clear data
                 window.analyticsManager.topRevenueData = [];
                 window.analyticsManager.top100Data = [];
                 window.analyticsManager.locationsData = [];
                 window.analyticsManager.specialData = [];
                 
+                // Clear analytics tables
                 ['topRevenueTable', 'top100Table', 'specialTable'].forEach(tableId => {
                     if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
-                        $(`#${tableId}`).DataTable().destroy();
+                        try {
+                            $(`#${tableId}`).DataTable().destroy();
+                        } catch (e) {
+                            console.warn(`Error destroying ${tableId}:`, e);
+                        }
                     }
                     $(`#${tableId}`).empty();
                 });
                 $('#locationsContent').empty();
             }
+            
+            $('#storageToggle').prop('checked', false);
+            window.storageManager.setStorageEnabled(false);
+            this.updateStorageUI();
+            this.updateUI();
             
             this.showAlert('Minden mentett adat törölve', 'success');
             
@@ -423,9 +450,11 @@ class DashboardManager {
         const data = this.datasets[year].adatok;
         console.log(`Feldolgozom ${year} adatokat: ${data.length} rekord`);
 
-        // Create DataTable
-        this.createYearTable(year, data);
-        this.createYearStats(year, data);
+        // Wait a moment to ensure DOM is ready
+        setTimeout(() => {
+            this.createYearTable(year, data);
+            this.createYearStats(year, data);
+        }, 100);
     }
 
     createYearTable(year, data) {
@@ -434,7 +463,17 @@ class DashboardManager {
         // Destroy existing table
         if (this.dataTables[year]) {
             this.dataTables[year].destroy();
-            $(`#${tableId}`).empty();
+            delete this.dataTables[year];
+        }
+        
+        // Clear table content
+        $(`#${tableId}`).empty();
+
+        // Check if table container exists and is visible
+        const tableContainer = $(`#${tableId}`).closest('.table-container');
+        if (tableContainer.length === 0) {
+            console.warn(`Table container for ${year} not found`);
+            return;
         }
 
         // Prepare table data
@@ -446,7 +485,7 @@ class DashboardManager {
             item.c || ''   // cím
         ]);
 
-        // Create DataTable
+        // Create table structure
         $(`#${tableId}`).html(`
             <thead>
                 <tr>
@@ -459,18 +498,28 @@ class DashboardManager {
             </thead>
         `);
 
-        this.dataTables[year] = $(`#${tableId}`).DataTable({
-            ...window.dashboardUtils.getDataTableConfig(),
-            data: tableData,
-            columns: [
-                { title: "Név" },
-                { title: "Összeg (Ft)" },
-                { title: "Létszám" },
-                { title: "Adószám" },
-                { title: "Cím" }
-            ],
-            order: [[1, 'desc']]
-        });
+        // Initialize DataTable with delay to ensure visibility
+        setTimeout(() => {
+            try {
+                this.dataTables[year] = $(`#${tableId}`).DataTable({
+                    ...window.dashboardUtils.getDataTableConfig(),
+                    data: tableData,
+                    columns: [
+                        { title: "Név" },
+                        { title: "Összeg (Ft)" },
+                        { title: "Létszám" },
+                        { title: "Adószám" },
+                        { title: "Cím" }
+                    ],
+                    order: [[1, 'desc']],
+                    deferRender: true,
+                    responsive: true
+                });
+                console.log(`DataTable for ${year} created successfully`);
+            } catch (error) {
+                console.error(`Error creating DataTable for ${year}:`, error);
+            }
+        }, 50);
     }
 
     createYearStats(year, data) {
@@ -548,8 +597,10 @@ class DashboardManager {
         
         if (this.dataTables.combined) {
             this.dataTables.combined.destroy();
-            $(`#${tableId}`).empty();
+            delete this.dataTables.combined;
         }
+        
+        $(`#${tableId}`).empty();
 
         const tableData = data.map(item => {
             const totalAmount = item[2023].o + item[2024].o + item[2025].o;
@@ -592,26 +643,36 @@ class DashboardManager {
             </thead>
         `);
 
-        this.dataTables.combined = $(`#${tableId}`).DataTable({
-            ...window.dashboardUtils.getDataTableConfig(),
-            data: tableData,
-            columns: [
-                { title: "Név" },
-                { title: "2023 összeg" },
-                { title: "2023 létszám" },
-                { title: "2024 összeg" },
-                { title: "2024 létszám" },
-                { title: "2025 összeg" },
-                { title: "2025 létszám" },
-                { title: "Összes összeg" },
-                { title: "Átlag/fő" },
-                { title: "Éves jövedelem/fő" },
-                { title: "Adószám" },
-                { title: "Cím" }
-            ],
-            order: [[7, 'desc']],
-            scrollX: true
-        });
+        // Initialize with delay to ensure visibility
+        setTimeout(() => {
+            try {
+                this.dataTables.combined = $(`#${tableId}`).DataTable({
+                    ...window.dashboardUtils.getDataTableConfig(),
+                    data: tableData,
+                    columns: [
+                        { title: "Név" },
+                        { title: "2023 összeg" },
+                        { title: "2023 létszám" },
+                        { title: "2024 összeg" },
+                        { title: "2024 létszám" },
+                        { title: "2025 összeg" },
+                        { title: "2025 létszám" },
+                        { title: "Összes összeg" },
+                        { title: "Átlag/fő" },
+                        { title: "Éves jövedelem/fő" },
+                        { title: "Adószám" },
+                        { title: "Cím" }
+                    ],
+                    order: [[7, 'desc']],
+                    scrollX: true,
+                    deferRender: true,
+                    responsive: true
+                });
+                console.log('Combined DataTable created successfully');
+            } catch (error) {
+                console.error('Error creating combined DataTable:', error);
+            }
+        }, 100);
     }
 
     createCombinedStats(data) {
