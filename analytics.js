@@ -1,9 +1,10 @@
-// Analytics data processing
+// Analytics data processing - JAVÍTOTT VERZIÓ
 window.analyticsManager = {
     topRevenueData: [],
     top100Data: [],
     locationsData: [],
     specialData: [],
+    charts: {}, // Chart instances storage
     
     // Kiemelt cégek adószámai
     specialTaxNumbers: ["19347215141", "19286031242", "18219612143"],
@@ -247,17 +248,21 @@ window.analyticsManager = {
         this.processLocations(datasets);
         this.processSpecial(datasets);
 
-        this.updateTopRevenueTable();
-        this.updateTop100Table();
-        this.updateLocationsView();
-        this.updateSpecialTable();
-        this.updateCharts();
+        // Delay table updates to ensure DOM is ready
+        setTimeout(() => {
+            this.updateTopRevenueTable();
+            this.updateTop100Table();
+            this.updateLocationsView();
+            this.updateSpecialTable();
+            this.updateCharts();
+        }, 200);
     },
 
     updateTopRevenueTable: function() {
         if ($('#topRevenueTable').hasClass('dataTable')) {
             $('#topRevenueTable').DataTable().destroy();
         }
+        $('#topRevenueTable').empty();
 
         const tableData = this.topRevenueData.map(row => [
             row[0], // name
@@ -276,34 +281,42 @@ window.analyticsManager = {
             window.dashboardUtils.formatHungarianNumber(Math.round(row[13])) // total avg yearly revenue
         ]);
 
-        $('#topRevenueTable').DataTable({
-            ...window.dashboardUtils.getDataTableConfig(),
-            data: tableData,
-            columns: [
-                { title: "Cégnév" },
-                { title: "2023 összeg (Ft)" },
-                { title: "2023 fő" },
-                { title: "2023 átl. éves bevétel/fő" },
-                { title: "2024 összeg (Ft)" },
-                { title: "2024 fő" },
-                { title: "2024-2023 változás" },
-                { title: "2024 átl. éves bevétel/fő" },
-                { title: "2025 összeg (Ft)" },
-                { title: "2025 fő" },
-                { title: "2025-2024 változás" },
-                { title: "2025 átl. éves bevétel/fő" },
-                { title: "3 év összesen (Ft)" },
-                { title: "Össz. átl. éves bevétel/fő" }
-            ],
-            order: [[12, 'desc']],
-            scrollX: true
-        });
+        setTimeout(() => {
+            try {
+                $('#topRevenueTable').DataTable({
+                    ...window.dashboardUtils.getDataTableConfig(),
+                    data: tableData,
+                    columns: [
+                        { title: "Cégnév" },
+                        { title: "2023 összeg (Ft)" },
+                        { title: "2023 fő" },
+                        { title: "2023 átl. éves bevétel/fő" },
+                        { title: "2024 összeg (Ft)" },
+                        { title: "2024 fő" },
+                        { title: "2024-2023 változás" },
+                        { title: "2024 átl. éves bevétel/fő" },
+                        { title: "2025 összeg (Ft)" },
+                        { title: "2025 fő" },
+                        { title: "2025-2024 változás" },
+                        { title: "2025 átl. éves bevétel/fő" },
+                        { title: "3 év összesen (Ft)" },
+                        { title: "Össz. átl. éves bevétel/fő" }
+                    ],
+                    order: [[12, 'desc']],
+                    scrollX: true,
+                    deferRender: true
+                });
+            } catch (error) {
+                console.error('Error creating top revenue table:', error);
+            }
+        }, 100);
     },
 
     updateTop100Table: function() {
         if ($('#top100Table').hasClass('dataTable')) {
             $('#top100Table').DataTable().destroy();
         }
+        $('#top100Table').empty();
 
         const tableData = this.top100Data.map(row => [
             row[0], // name
@@ -315,20 +328,27 @@ window.analyticsManager = {
             window.dashboardUtils.formatHungarianNumber(row[6]) // 3 year total
         ]);
 
-        $('#top100Table').DataTable({
-            ...window.dashboardUtils.getDataTableConfig(),
-            data: tableData,
-            columns: [
-                { title: "Cégnév" },
-                { title: "2023 összeg (Ft)" },
-                { title: "2024 összeg (Ft)" },
-                { title: "2025 összeg (Ft)" },
-                { title: "2024-2023 változás (Ft)" },
-                { title: "2025-2024 változás (Ft)" },
-                { title: "3 év összesen (Ft)" }
-            ],
-            order: [[3, 'desc']]
-        });
+        setTimeout(() => {
+            try {
+                $('#top100Table').DataTable({
+                    ...window.dashboardUtils.getDataTableConfig(),
+                    data: tableData,
+                    columns: [
+                        { title: "Cégnév" },
+                        { title: "2023 összeg (Ft)" },
+                        { title: "2024 összeg (Ft)" },
+                        { title: "2025 összeg (Ft)" },
+                        { title: "2024-2023 változás (Ft)" },
+                        { title: "2025-2024 változás (Ft)" },
+                        { title: "3 év összesen (Ft)" }
+                    ],
+                    order: [[3, 'desc']],
+                    deferRender: true
+                });
+            } catch (error) {
+                console.error('Error creating top100 table:', error);
+            }
+        }, 150);
     },
 
     updateLocationsView: function() {
@@ -383,6 +403,7 @@ window.analyticsManager = {
         if ($('#specialTable').hasClass('dataTable')) {
             $('#specialTable').DataTable().destroy();
         }
+        $('#specialTable').empty();
 
         const tableData = this.specialData.map(row => [
             row[0], // name
@@ -397,102 +418,130 @@ window.analyticsManager = {
             window.dashboardUtils.formatHungarianNumber(row[9]) // total
         ]);
 
-        $('#specialTable').DataTable({
-            ...window.dashboardUtils.getDataTableConfig(),
-            data: tableData,
-            columns: [
-                { title: "Cégnév" },
-                { title: "Adószám" },
-                { title: "Cím" },
-                { title: "2023 összeg (Ft)" },
-                { title: "2023 fő" },
-                { title: "2024 összeg (Ft)" },
-                { title: "2024 fő" },
-                { title: "2025 összeg (Ft)" },
-                { title: "2025 fő" },
-                { title: "3 év összesen (Ft)" }
-            ],
-            order: [[9, 'desc']]
-        });
+        setTimeout(() => {
+            try {
+                $('#specialTable').DataTable({
+                    ...window.dashboardUtils.getDataTableConfig(),
+                    data: tableData,
+                    columns: [
+                        { title: "Cégnév" },
+                        { title: "Adószám" },
+                        { title: "Cím" },
+                        { title: "2023 összeg (Ft)" },
+                        { title: "2023 fő" },
+                        { title: "2024 összeg (Ft)" },
+                        { title: "2024 fő" },
+                        { title: "2025 összeg (Ft)" },
+                        { title: "2025 fő" },
+                        { title: "3 év összesen (Ft)" }
+                    ],
+                    order: [[9, 'desc']],
+                    deferRender: true
+                });
+            } catch (error) {
+                console.error('Error creating special table:', error);
+            }
+        }, 200);
     },
 
     updateCharts: function() {
+        // Destroy existing chart if it exists
+        if (this.charts.top25Trend) {
+            this.charts.top25Trend.destroy();
+            delete this.charts.top25Trend;
+        }
+
         // TOP 25 trend chart
         const top25Canvas = document.getElementById('top25TrendChart');
         if (top25Canvas && this.top100Data.length > 0) {
-            this.createTop25TrendChart(top25Canvas);
+            // Wait a moment to ensure canvas is ready
+            setTimeout(() => {
+                this.createTop25TrendChart(top25Canvas);
+            }, 300);
         }
     },
 
     createTop25TrendChart: function(canvas) {
-        const ctx = canvas.getContext('2d');
-        
-        // Get top 25 companies
-        const top25 = this.top100Data.slice(0, 25);
-        
-        const datasets = top25.map((company, index) => {
-            const color = this.getChartColor(index);
-            return {
-                label: company[0].length > 15 ? company[0].substr(0, 15) + '...' : company[0],
-                data: [company[1], company[2], company[3]], // 2023, 2024, 2025
-                borderColor: color,
-                backgroundColor: color + '20',
-                borderWidth: 2,
-                fill: false,
-                tension: 0.4
-            };
-        });
-
-        return new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['2023', '2024', '2025'],
-                datasets: datasets
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false // Too many companies for legend
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.dataset.label}: ${window.dashboardUtils.formatHungarianNumber(context.parsed.y)} Ft`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Összeg (Ft)'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return window.dashboardUtils.formatHungarianNumber(value);
-                            }
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Év'
-                        }
-                    }
-                },
-                interaction: {
-                    mode: 'nearest',
-                    axis: 'x',
-                    intersect: false
-                }
+        try {
+            const ctx = canvas.getContext('2d');
+            
+            // Clear any existing chart
+            if (this.charts.top25Trend) {
+                this.charts.top25Trend.destroy();
+                delete this.charts.top25Trend;
             }
-        });
+            
+            // Get top 25 companies
+            const top25 = this.top100Data.slice(0, 25);
+            
+            const datasets = top25.map((company, index) => {
+                const color = this.getChartColor(index);
+                return {
+                    label: company[0].length > 15 ? company[0].substr(0, 15) + '...' : company[0],
+                    data: [company[1], company[2], company[3]], // 2023, 2024, 2025
+                    borderColor: color,
+                    backgroundColor: color + '20',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                };
+            });
+
+            this.charts.top25Trend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['2023', '2024', '2025'],
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // Too many companies for legend
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${window.dashboardUtils.formatHungarianNumber(context.parsed.y)} Ft`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Összeg (Ft)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return window.dashboardUtils.formatHungarianNumber(value);
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Év'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+
+            console.log('TOP 25 trend chart created successfully');
+        } catch (error) {
+            console.error('Error creating TOP 25 trend chart:', error);
+        }
     },
 
     getChartColor: function(index) {
@@ -517,5 +566,29 @@ window.analyticsManager = {
         const className = value > 0 ? 'change-positive' : value < 0 ? 'change-negative' : 'change-neutral';
         const sign = value > 0 ? '+' : '';
         return `<span class="${className}">${sign}${window.dashboardUtils.formatHungarianNumber(value)}</span>`;
+    },
+
+    // Destroy all charts when needed
+    destroyAllCharts: function() {
+        Object.keys(this.charts).forEach(chartKey => {
+            try {
+                if (this.charts[chartKey]) {
+                    this.charts[chartKey].destroy();
+                    delete this.charts[chartKey];
+                }
+            } catch (error) {
+                console.warn(`Error destroying chart ${chartKey}:`, error);
+            }
+        });
+        this.charts = {};
+    },
+
+    // Reset all data
+    resetAllData: function() {
+        this.topRevenueData = [];
+        this.top100Data = [];
+        this.locationsData = [];
+        this.specialData = [];
+        this.destroyAllCharts();
     }
 };
