@@ -6,6 +6,7 @@ class DashboardManager {
         this.dataTables = {};
         this.loadPromises = {};
         this.storageInitialized = false;
+        this.processedData = {}; // Cache for processed data
         this.init();
     }
 
@@ -108,7 +109,7 @@ class DashboardManager {
                     await this.performYearLoad(year, false);
                     loadedCount++;
                     this.updateProgress(Math.round((loadedCount / totalYears) * 100));
-                    await this.delay(100);
+                    await this.delay(50);
                 }
             }
             
@@ -318,30 +319,29 @@ class DashboardManager {
             
             this.datasets = {};
             this.loadedYears.clear();
+            this.processedData = {}; // Clear cache
             
             // Clear DataTables properly
             this.years.forEach(year => {
                 this.updateStatus(year, '');
                 $(`#stats${year}`).empty();
-                if (this.dataTables[year]) {
+                if ($.fn.DataTable.isDataTable(`#table${year}`)) {
                     try {
-                        this.dataTables[year].destroy();
+                        $(`#table${year}`).DataTable().destroy();
                     } catch (e) {
                         console.warn(`Error destroying DataTable for ${year}:`, e);
                     }
-                    delete this.dataTables[year];
                 }
                 $(`#table${year}`).empty();
             });
             
             // Clear combined table
-            if (this.dataTables.combined) {
+            if ($.fn.DataTable.isDataTable('#combinedTable')) {
                 try {
-                    this.dataTables.combined.destroy();
+                    $('#combinedTable').DataTable().destroy();
                 } catch (e) {
                     console.warn('Error destroying combined DataTable:', e);
                 }
-                delete this.dataTables.combined;
             }
             $('#combinedTable').empty();
             $('#combinedStats').empty();
@@ -352,7 +352,7 @@ class DashboardManager {
                 window.analyticsManager.resetAllData();
                 
                 // Clear analytics tables
-                ['topRevenueTable', 'top100Table', 'specialTable'].forEach(tableId => {
+                ['topRevenueTable', 'top100Table', 'specialTable', 'singleDonorTable'].forEach(tableId => {
                     if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
                         try {
                             $(`#${tableId}`).DataTable().destroy();
@@ -430,47 +430,68 @@ class DashboardManager {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // Data processing methods
+    // OPTIMALIZED DATA PROCESSING - GYORSÍTOTT VERZIÓ
     processYearData(year) {
         if (!this.datasets[year] || !this.datasets[year].adatok) return;
 
         const data = this.datasets[year].adatok;
         console.log(`Feldolgozom ${year} adatokat: ${data.length} rekord`);
 
-        // Wait a moment to ensure DOM is ready
-        setTimeout(() => {
-            this.createYearTable(year, data);
-            this.createYearStats(year, data);
-        }, 100);
+        // Cache processed data for faster access
+        this.processedData[year] = {
+            raw: data,
+            stats: this.calculateYearStats(data),
+            tableData: this.prepareTableData(data)
+        };
+
+        // Create stats immediately (fast)
+        this.createYearStats(year, this.processedData[year].stats);
+        
+        // Create table with lazy loading (slower, but non-blocking)
+        this.createOptimizedYearTable(year);
     }
 
-    createYearTable(year, data) {
+    calculateYearStats(data) {
+        const totalAmount = data.reduce((sum, item) => sum + (item.o || 0), 0);
+        const totalPeople = data.reduce((sum, item) => sum + (item.f || 0), 0);
+        const totalCompanies = data.length;
+        const avgPerPerson = totalPeople > 0 ? totalAmount / totalPeople : 0;
+
+        return {
+            totalAmount,
+            totalPeople,
+            totalCompanies,
+            avgPerPerson
+        };
+    }
+
+    prepareTableData(data) {
+        return data.map(item => ({
+            name: item.n || '',
+            amount: item.o || 0,
+            people: item.f || 0,
+            taxNumber: item.a || '',
+            address: item.c || '',
+            // Pre-format for faster display
+            formattedAmount: window.dashboardUtils.formatHungarianNumber(item.o || 0),
+            formattedTaxNumber: window.dashboardUtils.formatTaxNumber(item.a || '')
+        }));
+    }
+
+    createOptimizedYearTable(year) {
         const tableId = `table${year}`;
         
-        // Destroy existing table
-        if (this.dataTables[year]) {
-            this.dataTables[year].destroy();
-            delete this.dataTables[year];
+        // Destroy existing table properly
+        if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
+            $(`#${tableId}`).DataTable().destroy();
         }
         
-        // Clear table content
+        // Clear table content completely
         $(`#${tableId}`).empty();
 
-        // Check if table container exists and is visible
-        const tableContainer = $(`#${tableId}`).closest('.table-container');
-        if (tableContainer.length === 0) {
-            console.warn(`Table container for ${year} not found`);
-            return;
-        }
-
-        // Prepare table data
-        const tableData = data.map(item => [
-            item.n || '',  // név
-            window.dashboardUtils.formatHungarianNumber(item.o || 0), // összeg
-            item.f || 0,   // fő
-            window.dashboardUtils.formatTaxNumber(item.a || ''), // adószám
-            item.c || ''   // cím
-        ]);
+        // Get cached data
+        const cachedData = this.processedData[year];
+        if (!cachedData) return;
 
         // Create table structure
         $(`#${tableId}`).html(`
@@ -485,63 +506,93 @@ class DashboardManager {
             </thead>
         `);
 
-        // Initialize DataTable with delay to ensure visibility
+        // Initialize with optimized settings for large datasets
         setTimeout(() => {
             try {
-                this.dataTables[year] = $(`#${tableId}`).DataTable({
-                    ...window.dashboardUtils.getDataTableConfig(),
-                    data: tableData,
-                    columns: [
-                        { title: "Név" },
-                        { title: "Összeg (Ft)" },
-                        { title: "Létszám" },
-                        { title: "Adószám" },
-                        { title: "Cím" }
-                    ],
-                    order: [[1, 'desc']],
-                    deferRender: true,
-                    responsive: true
-                });
-                console.log(`DataTable for ${year} created successfully`);
+                if (!$.fn.DataTable.isDataTable(`#${tableId}`)) {
+                    this.dataTables[year] = $(`#${tableId}`).DataTable({
+                        ...this.getOptimizedDataTableConfig(),
+                        data: cachedData.tableData.map(item => [
+                            item.name,
+                            item.formattedAmount,
+                            item.people,
+                            item.formattedTaxNumber,
+                            item.address
+                        ]),
+                        columns: [
+                            { title: "Név" },
+                            { title: "Összeg (Ft)" },
+                            { title: "Létszám" },
+                            { title: "Adószám" },
+                            { title: "Cím" }
+                        ],
+                        order: [[1, 'desc']]
+                    });
+                    console.log(`Optimized DataTable for ${year} created successfully (${cachedData.tableData.length} rows)`);
+                }
             } catch (error) {
                 console.error(`Error creating DataTable for ${year}:`, error);
             }
         }, 50);
     }
 
-    createYearStats(year, data) {
-        const totalAmount = data.reduce((sum, item) => sum + (item.o || 0), 0);
-        const totalPeople = data.reduce((sum, item) => sum + (item.f || 0), 0);
-        const totalCompanies = data.length;
-        const avgPerPerson = totalPeople > 0 ? totalAmount / totalPeople : 0;
+    // Optimized DataTable config for large datasets
+    getOptimizedDataTableConfig() {
+        return {
+            pageLength: 50, // Show more rows per page
+            lengthMenu: [[25, 50, 100, 500, 1000], [25, 50, 100, 500, 1000]],
+            responsive: true,
+            processing: true, // Show processing indicator
+            deferRender: true, // Only render visible rows
+            scroller: false, // Disable virtual scrolling for now
+            stateSave: false, // Don't save state for performance
+            dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                 '<"row"<"col-sm-12"tr>>' +
+                 '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+            drawCallback: function(settings) {
+                // Optional: Add callback for when table is drawn
+                console.log(`Table drawn with ${settings.fnRecordsDisplay()} visible records`);
+            },
+            language: {
+                url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/hu.json",
+                processing: "Feldolgozás..."
+            },
+            // Performance optimizations
+            searchDelay: 400, // Debounce search
+            search: {
+                smart: false // Disable smart search for performance
+            }
+        };
+    }
 
+    createYearStats(year, stats) {
         const statsHtml = `
             <div class="col-md-3 col-6 mb-3">
                 <div class="stats-card">
                     <div class="stats-icon"><i class="bi bi-building"></i></div>
                     <div class="stats-label">Cégek száma</div>
-                    <div class="stats-value">${window.dashboardUtils.formatHungarianNumber(totalCompanies)}</div>
+                    <div class="stats-value">${window.dashboardUtils.formatHungarianNumber(stats.totalCompanies)}</div>
                 </div>
             </div>
             <div class="col-md-3 col-6 mb-3">
                 <div class="stats-card">
                     <div class="stats-icon"><i class="bi bi-currency-dollar"></i></div>
                     <div class="stats-label">Összes összeg</div>
-                    <div class="stats-value">${window.dashboardUtils.formatHungarianNumber(totalAmount)}</div>
+                    <div class="stats-value">${window.dashboardUtils.formatHungarianNumber(stats.totalAmount)}</div>
                 </div>
             </div>
             <div class="col-md-3 col-6 mb-3">
                 <div class="stats-card">
                     <div class="stats-icon"><i class="bi bi-people"></i></div>
                     <div class="stats-label">Összes fő</div>
-                    <div class="stats-value">${window.dashboardUtils.formatHungarianNumber(totalPeople)}</div>
+                    <div class="stats-value">${window.dashboardUtils.formatHungarianNumber(stats.totalPeople)}</div>
                 </div>
             </div>
             <div class="col-md-3 col-6 mb-3">
                 <div class="stats-card">
                     <div class="stats-icon"><i class="bi bi-person"></i></div>
                     <div class="stats-label">Átlag / fő</div>
-                    <div class="stats-value">${window.dashboardUtils.formatHungarianNumber(Math.round(avgPerPerson))}</div>
+                    <div class="stats-value">${window.dashboardUtils.formatHungarianNumber(Math.round(stats.avgPerPerson))}</div>
                 </div>
             </div>
         `;
@@ -552,12 +603,15 @@ class DashboardManager {
     updateCombinedData() {
         if (this.loadedYears.size === 0) return;
 
+        console.time('Combined data processing');
+        
         const combinedData = {};
         
-        // Combine data from all loaded years
+        // Use cached data when available
         this.loadedYears.forEach(year => {
-            if (this.datasets[year] && this.datasets[year].adatok) {
-                this.datasets[year].adatok.forEach(item => {
+            const cachedData = this.processedData[year];
+            if (cachedData) {
+                cachedData.raw.forEach(item => {
                     const key = item.n || 'Unknown';
                     if (!combinedData[key]) {
                         combinedData[key] = {
@@ -575,20 +629,26 @@ class DashboardManager {
             }
         });
 
-        this.createCombinedTable(Object.values(combinedData));
-        this.createCombinedStats(Object.values(combinedData));
+        const combinedArray = Object.values(combinedData);
+        console.timeEnd('Combined data processing');
+
+        this.createOptimizedCombinedTable(combinedArray);
+        this.createCombinedStats(combinedArray);
     }
 
-    createCombinedTable(data) {
+    createOptimizedCombinedTable(data) {
         const tableId = 'combinedTable';
         
-        if (this.dataTables.combined) {
-            this.dataTables.combined.destroy();
-            delete this.dataTables.combined;
+        // Destroy existing table properly
+        if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
+            $(`#${tableId}`).DataTable().destroy();
         }
         
+        // Clear table content completely
         $(`#${tableId}`).empty();
 
+        console.time('Combined table data preparation');
+        
         const tableData = data.map(item => {
             const totalAmount = item[2023].o + item[2024].o + item[2025].o;
             const totalPeople = item[2023].f + item[2024].f + item[2025].f;
@@ -607,9 +667,12 @@ class DashboardManager {
                 window.dashboardUtils.formatHungarianNumber(Math.round(avgPerPerson)),
                 window.dashboardUtils.formatHungarianNumber(yearlyIncome),
                 window.dashboardUtils.formatTaxNumber(item.adoszam),
-                item.cim
+                item.cim,
+                totalAmount // For sorting - keep numeric value
             ];
         });
+
+        console.timeEnd('Combined table data preparation');
 
         $(`#${tableId}`).html(`
             <thead>
@@ -633,29 +696,33 @@ class DashboardManager {
         // Initialize with delay to ensure visibility
         setTimeout(() => {
             try {
-                this.dataTables.combined = $(`#${tableId}`).DataTable({
-                    ...window.dashboardUtils.getDataTableConfig(),
-                    data: tableData,
-                    columns: [
-                        { title: "Név" },
-                        { title: "2023 összeg" },
-                        { title: "2023 létszám" },
-                        { title: "2024 összeg" },
-                        { title: "2024 létszám" },
-                        { title: "2025 összeg" },
-                        { title: "2025 létszám" },
-                        { title: "Összes összeg" },
-                        { title: "Átlag/fő" },
-                        { title: "Éves jövedelem/fő" },
-                        { title: "Adószám" },
-                        { title: "Cím" }
-                    ],
-                    order: [[7, 'desc']],
-                    scrollX: true,
-                    deferRender: true,
-                    responsive: true
-                });
-                console.log('Combined DataTable created successfully');
+                if (!$.fn.DataTable.isDataTable(`#${tableId}`)) {
+                    this.dataTables.combined = $(`#${tableId}`).DataTable({
+                        ...this.getOptimizedDataTableConfig(),
+                        data: tableData,
+                        columns: [
+                            { title: "Név" },
+                            { title: "2023 összeg" },
+                            { title: "2023 létszám" },
+                            { title: "2024 összeg" },
+                            { title: "2024 létszám" },
+                            { title: "2025 összeg" },
+                            { title: "2025 létszám" },
+                            { title: "Összes összeg" },
+                            { title: "Átlag/fő" },
+                            { title: "Éves jövedelem/fő" },
+                            { title: "Adószám" },
+                            { title: "Cím" },
+                            { title: "Sort", visible: false, searchable: false } // Hidden column for sorting
+                        ],
+                        order: [[12, 'desc']], // Sort by hidden numeric column
+                        scrollX: true,
+                        columnDefs: [
+                            { targets: 12, visible: false, searchable: false } // Hide sort column
+                        ]
+                    });
+                    console.log(`Optimized Combined DataTable created successfully (${data.length} rows)`);
+                }
             } catch (error) {
                 console.error('Error creating combined DataTable:', error);
             }
@@ -688,7 +755,7 @@ class DashboardManager {
         const change2324 = totalStats.amount2023 > 0 ? 
             window.dashboardUtils.calculatePercentageChange(totalStats.amount2023, totalStats.amount2024) : 0;
         const change2425 = totalStats.amount2024 > 0 ? 
-            window.dashboardUtils.calculatePercentageChange(totalStats.amount2024, totalStats.amount2025) : 0;
+            window.dashboardUtils.calculatePercentageChange(totalStats.amount2024, totalStats.amount2425) : 0;
 
         const statsHtml = `
             <div class="col-md-2 col-6 mb-3">
@@ -740,7 +807,16 @@ class DashboardManager {
 
     updateAnalytics() {
         if (window.analyticsManager && this.loadedYears.size > 0) {
-            window.analyticsManager.updateAnalyticsView(this.datasets);
+            // Pass cached processed data to analytics for faster processing
+            const optimizedDatasets = {};
+            this.loadedYears.forEach(year => {
+                if (this.processedData[year]) {
+                    optimizedDatasets[year] = {
+                        adatok: this.processedData[year].raw
+                    };
+                }
+            });
+            window.analyticsManager.updateAnalyticsView(optimizedDatasets);
         }
     }
 
@@ -767,6 +843,6 @@ class DashboardManager {
 
 // Initialize when DOM is ready
 $(document).ready(function() {
-    console.log('DOM ready, creating dashboard instance...');
+    console.log('DOM ready, creating optimized dashboard instance...');
     window.dashboard = new DashboardManager();
 });
